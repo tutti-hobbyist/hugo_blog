@@ -1,0 +1,30 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-us'
+title = 'A place for self-expression'
+theme = 'LoveIt'
+
+# determines default content language ["en", "ja", "fr", ...]
+defaultContentLanguage = "en"
+
+# Author config
+[params.author]
+  name = "Tuuutti"
+  email = "tutti.hobbyist[at]gmail.com"
+
+[menu]
+[[menu.main]]
+    identifier = "home"
+    name = 'Home'
+    URL = '/'
+    weight = 1
+[[menu.main]]
+    identifier = "about"
+    name = 'About'
+    URL = '/about/'
+    weight = 2
+[[menu.main]]
+    identifier = "posts"
+    name = 'Posts'
+    URL = '/posts/'
+    weight = 3
+
