@@ -1,7 +1,7 @@
 +++
 title = '2023年の振り返り'
 subtitle = ""
-date = 2024-01-02T15:40:06+09:00
+date = 2023-12-05T15:40:06+09:00
 lastmod = 2024-01-02T15:40:06+09:00
 draft = false
 author = "Tuuutti"

@@ -59,7 +59,7 @@
     # special amount of posts in each section page
     paginate = 10
     # date format (month and day)
-    dateFormat = "01-02"
+    dateFormat = "Jan 2"
     # amount of RSS pages
     rss = 10
 
@@ -68,7 +68,7 @@
     # special amount of posts in each list page
     paginate = 10
     # date format (month and day)
-    dateFormat = "01-02"
+    dateFormat = "Jan 2"
     # amount of RSS pages
     rss = 10
 
