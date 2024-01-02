@@ -129,7 +129,7 @@
       # whether to show social links
       social = true
       # disclaimer (HTML format is supported)
-      disclaimer = "Software engineer / Data scientist"
+      disclaimer = "Software engineer / Data scientist <br> 英語を活かしたキャリア構築を目指すエンジニア"
     # Home page posts
     [params.home.posts]
       enable = true
