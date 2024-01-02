@@ -9,10 +9,6 @@ defaultContentLanguage = "ja"
 # designates where the sites data are generated
 publishDir = "docs"
 
-# Author config
-[params.author]
-  name = "Tuuutti"
-  email = "tutti.hobbyist[at]gmail.com"
 
 [menu]
 [[menu.main]]
@@ -51,6 +47,11 @@ publishDir = "docs"
   description = "This is Tuuutti page."
   # website images for Open Graph and Twitter Cards
   images = ["/images/image.png"]
+  
+  # Author config
+  [params.author]
+  name = "Tuuutti"
+  email = "tutti.hobbyist[at]gmail.com"
 
   # Header config
   [params.header]
@@ -75,7 +76,7 @@ publishDir = "docs"
   [params.footer]
     enable = true
     # Custom content (HTML format is supported)
-    custom = ""
+    custom = "This site is powered by Hugo and LoveIt."
     # whether to show Hugo and theme info
     hugo = true
     # whether to show copyright info
