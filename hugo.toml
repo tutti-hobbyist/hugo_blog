@@ -1,10 +1,13 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://tutti-hobbyist.github.io'
 languageCode = 'en-us'
 title = 'A place for self-expression'
 theme = 'LoveIt'
 
 # determines default content language ["en", "ja", "fr", ...]
 defaultContentLanguage = "en"
+
+# designates where the sites data are generated
+publishDir = "docs"
 
 # Author config
 [params.author]
