@@ -481,9 +481,9 @@ publishDir = "docs"
   # Analytics config
   [params.analytics]
     enable = false
-    # Google Analytics
+    # Google Analytics (This patameter is used for Universal Analytics not GA4)
     [params.analytics.google]
-      id = "G-6CBS9PFHMT"
+      id = ""
       # whether to anonymize IP
       anonymizeIP = true
     # Fathom Analytics
