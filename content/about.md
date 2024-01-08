@@ -1,18 +1,19 @@
 +++
 title = '自己紹介'
 subtitle = ""
-date = 2024-01-02T14:00:14+09:00
-lastmod = 2024-01-02T14:00:14+09:00
+date = 2024-01-02
+lastmod = 2024-01-02
 draft = false
 author = "Tuuutti"
 authorLink = ""
 description = ""
 license = "MIT"
 images = []
-tags = []
-categories = []
+tags = ["自己紹介"]
+categories = ["語り"]
 featuredImage = ""
 featuredImagePreview = ""
+isCJKLanguage = true
 hiddenFromHomePage = false
 hiddenFromSearch = false
 twemoji = false
@@ -24,13 +25,13 @@ linkToMarkdown = true
 rssFullText = false
 +++
 
+<!--more-->
+
 > こちらはTuuuttiの自己紹介ページです。
 > 
 > キャリアの詳細については、[:(fab fa-linkedin fa-fw):](https://www.linkedin.com/in/tutti-hobbyist/)をご確認ください。
 
 ## 自己紹介
-
-
 ### :(fas fa-user fa-fw): 職業
 - ソフトウェアエンジニア
 - データサイエンティスト
@@ -56,6 +57,13 @@ rssFullText = false
     - :(fab fa-jenkins fa-fw): Jenkins
 <br>
 
+### :(fas fa-language fa-fw): 言語
+- 日本語 (ネイティブ)
+- 英語 (CEFR B2)
+    - 英検準1級 (07.2019)
+    - TOEIC890点 (10.2017)
+<br>
+
 ### :(fas fa-trophy fa-fw): 受賞
 - 11.2018 : 東北大学工学部マテリアル・開発系卒業研究中間発表会 優秀ポスター発表賞 ([Link](https://www.material.tohoku.ac.jp/~uhtm/image/news/20181115_award.png))
 <br>
@@ -65,9 +73,7 @@ rssFullText = false
 - 04.2015-03.2019 : 東北大学 工学部 材料科学総合学科
 <br>
 
-
-
-### 趣味
+### :(far fa-face-laugh-squint fa-fw): 趣味
 - :(fas fa-person-snowboarding fa-fw): スポーツ
 - :(fas fa-dumbbell fa-fw): 筋トレ
 - :(fas fa-plane-departure fa-fw): 旅行

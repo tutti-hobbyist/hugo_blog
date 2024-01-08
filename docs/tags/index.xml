@@ -1,7 +1,23 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>Tags - tag - A place for self-expression</title>
+        <title>Tags - Tag - A place for self-expression</title>
         <link>https://tutti-hobbyist.github.io/hugo_blog/tags/</link>
-        <description>Tags - tag - A place for self-expression</description>
-        <generator>Hugo -- gohugo.io</generator><language>ja</language><atom:link href="https://tutti-hobbyist.github.io/hugo_blog/tags/" rel="self" type="application/rss+xml" /></channel>
+        <description>Tags - Tag - A place for self-expression</description>
+        <generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Tue, 02 Jan 2024 00:00:00 &#43;0000</lastBuildDate><atom:link href="https://tutti-hobbyist.github.io/hugo_blog/tags/" rel="self" type="application/rss+xml" /><item>
+    <title>自己紹介</title>
+    <link>https://tutti-hobbyist.github.io/hugo_blog/tags/%E8%87%AA%E5%B7%B1%E7%B4%B9%E4%BB%8B/</link>
+    <pubDate>Tue, 02 Jan 2024 00:00:00 &#43;0000</pubDate>
+    <author>Tuuutti</author>
+    <guid>https://tutti-hobbyist.github.io/hugo_blog/tags/%E8%87%AA%E5%B7%B1%E7%B4%B9%E4%BB%8B/</guid>
+    <description><![CDATA[]]></description>
+</item>
+<item>
+    <title>振り返り</title>
+    <link>https://tutti-hobbyist.github.io/hugo_blog/tags/%E6%8C%AF%E3%82%8A%E8%BF%94%E3%82%8A/</link>
+    <pubDate>Mon, 01 Jan 2024 00:00:00 &#43;0000</pubDate>
+    <author>Tuuutti</author>
+    <guid>https://tutti-hobbyist.github.io/hugo_blog/tags/%E6%8C%AF%E3%82%8A%E8%BF%94%E3%82%8A/</guid>
+    <description><![CDATA[]]></description>
+</item>
+</channel>
 </rss>

@@ -6,9 +6,14 @@ theme = 'LoveIt'
 # determines default content language ["en", "ja", "fr", ...]
 defaultContentLanguage = "ja"
 
+hasCJKLanguage = true
+
 # designates where the sites data are generated
 publishDir = "docs"
 
+[taxonomies]
+  category = 'categories'
+  tag = 'tags'
 
 [menu]
 [[menu.main]]
@@ -26,6 +31,16 @@ publishDir = "docs"
     name = 'Posts'
     URL = '/posts/'
     weight = 3
+[[menu.main]]
+    identifier = "tags"
+    name = 'Tags'
+    URL = '/tags/'
+    weight = 4
+[[menu.main]]
+    identifier = "categories"
+    name = 'Categories'
+    URL = '/categories/'
+    weight = 5
 
 [module]
   [module.hugoVersion]
@@ -76,7 +91,7 @@ publishDir = "docs"
   [params.footer]
     enable = true
     # Custom content (HTML format is supported)
-    custom = "This site is powered by Hugo and LoveIt."
+    custom = "Powered by <a href='https://gohugo.io/' target='_blank' rel='noopener noreffer' style='color:#0074D9'>Hugo</a> and <a href='https://github.com/dillonzq/LoveIt' target='_blank' rel='noopener noreffer' style='color:#0074D9'>LoveIt</a>."
     # whether to show Hugo and theme info
     hugo = true
     # whether to show copyright info
@@ -111,7 +126,7 @@ publishDir = "docs"
     # optional site title override for the app when added to an iOS home screen or Android launcher
     title = "Tuuutti"
     # whether to omit favicon resource links
-    noFavicon = false
+    noFavicon = true
     # modern SVG favicon to use in place of older style .png and .ico files
     svgFavicon = ""
     # Android browser theme color
@@ -125,7 +140,7 @@ publishDir = "docs"
   [params.search]
     enable = false
     # type of search engine ["lunr", "algolia"]
-    type = "lunr"
+    type = "algolia"
     # max index length of the chunked content
     contentLength = 4000
     # placeholder of the search bar
@@ -468,7 +483,7 @@ publishDir = "docs"
     enable = false
     # Google Analytics
     [params.analytics.google]
-      id = ""
+      id = "G-6CBS9PFHMT"
       # whether to anonymize IP
       anonymizeIP = true
     # Fathom Analytics

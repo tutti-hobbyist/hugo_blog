@@ -13,6 +13,7 @@ tags = []
 categories = []
 featuredImage = ""
 featuredImagePreview = ""
+isCJKLanguage = true
 hiddenFromHomePage = false
 hiddenFromSearch = false
 twemoji = false
@@ -23,4 +24,6 @@ fontawesome = true
 linkToMarkdown = true
 rssFullText = false
 +++
+
+<!--more-->
 

@@ -46,7 +46,7 @@ other = "Switch Theme"
 
 # === partials/footer.html ===
 [poweredBySome]
-other = "Powered by {{ .Hugo }} | Theme - {{ .Theme }}"
+# other = "Powered by {{ .Hugo }} | Theme - {{ .Theme }}"
 # === partials/footer.html ===
 
 # === partials/comment.html ===
@@ -111,11 +111,11 @@ other = "published on {{ .Date }}"
 other = "included in {{ .Categories }}"
 
 [wordCount]
-one = "One word"
+# one = "One word"
 other = "{{ .Count }} words"
 
 [readingTime]
-one = "One minute"
+# one = "One minute"
 other = "{{ .Count }} minutes"
 
 [views]
