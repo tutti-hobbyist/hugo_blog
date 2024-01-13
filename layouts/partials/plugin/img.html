@@ -1,6 +1,5 @@
 {{- /* lazysizes and lightgallery */ -}}
 {{- $src := .Src -}}
-{{- $parentDir := path.Dir .Src -}}
 {{- $width := .Width -}}
 {{- $height := .Height -}}
 {{- with dict "Path" $src "Resources" .Resources | partial "function/resource.html" -}}
