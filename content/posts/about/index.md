@@ -50,6 +50,7 @@ rssFullText = false
     - Spring Boot
 - :(fas fa-database fa-fw): データベース
     - PostgreSQL
+    - SQLite
 - :(fas fa-tools fa-fw): その他ツール
     - :(fab fa-git-alt fa-fw): Git
     - :(fab fa-github fa-fw): GitHub
