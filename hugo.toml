@@ -8,6 +8,9 @@ defaultContentLanguage = "ja"
 
 hasCJKLanguage = true
 
+# designates where the sites articles are located
+contentDir = "content"
+
 # designates where the sites data are generated
 publishDir = "docs"
 
