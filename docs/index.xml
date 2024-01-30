@@ -3,9 +3,17 @@
         <title>A place for self-expression</title>
         <link>https://tutti-hobbyist.github.io/hugo_blog/</link>
         <description>This is Tuuutti page.</description>
-        <generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Sun, 28 Jan 2024 00:00:00 &#43;0000</lastBuildDate>
+        <generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Tue, 30 Jan 2024 00:00:00 &#43;0000</lastBuildDate>
             <atom:link href="https://tutti-hobbyist.github.io/hugo_blog/index.xml" rel="self" type="application/rss+xml" />
         <item>
+    <title>HDF5の概要</title>
+    <link>https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/</link>
+    <pubDate>Tue, 30 Jan 2024 00:00:00 &#43;0000</pubDate>
+    <author>Tuuutti</author>
+    <guid>https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/</guid>
+    <description><![CDATA[]]></description>
+</item>
+<item>
     <title>Hugoで未来の記事もビルドする方法</title>
     <link>https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/</link>
     <pubDate>Sun, 28 Jan 2024 00:00:00 &#43;0000</pubDate>

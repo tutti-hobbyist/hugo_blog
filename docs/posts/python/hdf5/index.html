@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Hugoで未来の記事もビルドする方法 - A place for self-expression</title>
+        <title>HDF5の概要 - A place for self-expression</title>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-6CBS9PFHMT"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -14,31 +14,31 @@
   gtag('config', 'G-6CBS9PFHMT');
 </script>
 
-<meta name="Description" content="This is Tuuutti page."><meta property="og:title" content="Hugoで未来の記事もビルドする方法" />
+<meta name="Description" content="This is Tuuutti page."><meta property="og:title" content="HDF5の概要" />
 <meta property="og:description" content="" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/" /><meta property="og:image" content="https://tutti-hobbyist.github.io/image.png" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2024-01-28T00:00:00+00:00" />
-<meta property="article:modified_time" content="2024-01-28T00:00:00+00:00" /><meta property="og:site_name" content="Tuuutti" />
+<meta property="og:url" content="https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/" /><meta property="og:image" content="https://tutti-hobbyist.github.io/image.png" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-01-30T00:00:00+00:00" />
+<meta property="article:modified_time" content="2024-01-30T00:00:00+00:00" /><meta property="og:site_name" content="Tuuutti" />
 
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://tutti-hobbyist.github.io/image.png" /><meta name="twitter:title" content="Hugoで未来の記事もビルドする方法"/>
+<meta name="twitter:image" content="https://tutti-hobbyist.github.io/image.png" /><meta name="twitter:title" content="HDF5の概要"/>
 <meta name="twitter:description" content=""/>
 <meta name="twitter:site" content="@tuttiHobbyist"/>
 <meta name="application-name" content="Tuuutti">
-<meta name="apple-mobile-web-app-title" content="Tuuutti"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="canonical" href="https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/" /><link rel="prev" href="https://tutti-hobbyist.github.io/hugo_blog/posts/maven/how_to_add_ssl_certification/" /><link rel="next" href="https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/" /><link rel="stylesheet" href="/hugo_blog/css/style.min.cf6878db51c51b2d04ae155284a4403dbee8db33e16c066f954c95279c271fcd.css" integrity="sha256-z2h421HFGy0ErhVShKRAPb7o2zPhbAZvlUyVJ5wnH80="><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<meta name="apple-mobile-web-app-title" content="Tuuutti"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="canonical" href="https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/" /><link rel="prev" href="https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/" /><link rel="stylesheet" href="/hugo_blog/css/style.min.cf6878db51c51b2d04ae155284a4403dbee8db33e16c066f954c95279c271fcd.css" integrity="sha256-z2h421HFGy0ErhVShKRAPb7o2zPhbAZvlUyVJ5wnH80="><link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css"></noscript><link rel="preload" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"></noscript><script type="application/ld+json">
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "Hugoで未来の記事もビルドする方法",
+        "headline": "HDF5の概要",
         "inLanguage": "ja",
         "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": "https:\/\/tutti-hobbyist.github.io\/hugo_blog\/posts\/hugo-tips\/build_future_article\/"
-        },"genre": "posts","keywords": "Hugo","wordcount":  308 ,
-        "url": "https:\/\/tutti-hobbyist.github.io\/hugo_blog\/posts\/hugo-tips\/build_future_article\/","datePublished": "2024-01-28T00:00:00+00:00","dateModified": "2024-01-28T00:00:00+00:00","publisher": {
+            "@id": "https:\/\/tutti-hobbyist.github.io\/hugo_blog\/posts\/python\/hdf5\/"
+        },"genre": "posts","keywords": "HDF5, Python","wordcount":  430 ,
+        "url": "https:\/\/tutti-hobbyist.github.io\/hugo_blog\/posts\/python\/hdf5\/","datePublished": "2024-01-30T00:00:00+00:00","dateModified": "2024-01-30T00:00:00+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
@@ -77,9 +77,9 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Hugoで未来の記事もビルドする方法</h1><div class="post-meta">
-            <div class="post-meta-line"><span class="post-author"><a href="/hugo_blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Tuuutti</a></span>&nbsp;<span class="post-category">included in <a href="/hugo_blog/categories/hugo/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Hugo</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-01-28">2024-01-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;308 words&nbsp;
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">HDF5の概要</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/hugo_blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Tuuutti</a></span>&nbsp;<span class="post-category">included in <a href="/hugo_blog/categories/hdf5/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>HDF5</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-01-30">2024-01-30</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;430 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;1 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
@@ -90,74 +90,100 @@
   <ul>
     <li>
       <ul>
-        <li><a href="#現象">現象</a></li>
-        <li><a href="#対策">対策</a></li>
+        <li><a href="#hdf5の特徴">HDF5の特徴</a></li>
+        <li><a href="#階層構造">階層構造</a></li>
+        <li><a href="#pythonコード-読込み">Pythonコード (読込み)</a></li>
+        <li><a href="#pythonコード-書込み">Pythonコード (書込み)</a></li>
         <li><a href="#参考情報">参考情報</a></li>
       </ul>
     </li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><h3 id="現象">現象</h3>
-<ol>
-<li>
-<p>自分は記事を管理する際に、記事更新時の更新時刻の変更が面倒なので、日付のみを管理している
-<figure><a class="lightgallery" href="/hugo_blog/posts/hugo-tips/build_future_article/datetime_settings.png" title="記事の日付管理" data-thumbnail="/hugo_blog/posts/hugo-tips/build_future_article/datetime_settings.png" data-sub-html="<h2>記事の日付管理</h2><p>記事の日付管理</p>">
-        <img
-            class="lazyload"
-            src="/hugo_blog/svg/loading.min.svg"
-            data-src="/hugo_blog/posts/hugo-tips/build_future_article/datetime_settings.png"
-            data-srcset="/hugo_blog/posts/hugo-tips/build_future_article/datetime_settings.png, /hugo_blog/posts/hugo-tips/build_future_article/datetime_settings.png 1.5x, /hugo_blog/posts/hugo-tips/build_future_article/datetime_settings.png 2x"
-            data-sizes="auto"
-            alt="/hugo_blog/posts/hugo-tips/build_future_article/datetime_settings.png" width="177" height="45" />
-    </a><figcaption class="image-caption">記事の日付管理</figcaption>
-    </figure></p>
-</li>
-<li>
-<p>当日 (2024/01/28) ビルドするとビルドは完了するものの、当日作成した記事のみ表示されない</p>
-</li>
-<li>
-<p>試しに前日の日付 (2024/01/27) を設定すると、ビルドされて記事を確認できた</p>
-</li>
-<li>
-<p>日時設定から時刻を削除し日付のみにすると、その日に作成した記事はビルド出来ないことが判明
-<!-- raw HTML omitted --></p>
-</li>
-</ol>
-<h3 id="対策">対策</h3>
-<p>以下2つの対策が考えられる</p>
-<ol>
-<li>ビルドする際に <code>--buildFuture</code> or <code>-F</code> のフラグをコマンドに追加することで、未来の日付の記事もビルド</li>
-<li>時刻もめんどくさがらず、きちんと更新する
-<del>lastmodを設定しなければ、そもそも時刻を管理する必要はなくなるが、個人的に更新した日付は管理したい</del></li>
-</ol>
+            </div><div class="content" id="content"><h3 id="hdf5の特徴">HDF5の特徴</h3>
+<ul>
+<li>汎用バイナリ形式 (言語非依存)</li>
+<li>ファイル中に階層構造を保持</li>
+<li>種々のデータを保存可能</li>
+<li>メタデータを格納</li>
+<li>データの部分読込みが可能 (メモリ使用量低減)</li>
+<li>部分更新可能なため、ファイル圧縮も容易 (データセットをchunkに分割)</li>
+<li>クロスプラットフォーム対応</li>
+<li>pickleより若干IOが遅いが、csvと比べるとかなり高速
+<!-- raw HTML omitted --></li>
+</ul>
+<h3 id="階層構造">階層構造</h3>
+<ul>
+<li>Group (Dict) : ディレクトリ</li>
+<li>Dataset (ndarray): ファイル</li>
+<li>Attribute: プロパティ
+<!-- raw HTML omitted --></li>
+</ul>
+<h3 id="pythonコード-読込み">Pythonコード (読込み)</h3>
+<pre><code>FILE_PATH = &quot;hoge.hdf5&quot;
+
+# hdf5を読込み、Datasetを出力する関数
+def read_hdf5(file_path):
+
+    # Datasetを出力する関数
+    def print_data(name, obj):
+        if isinstance(obj, h5py.Dataset):
+            print(f&quot;========= {name} =========&quot;, &quot;\n&quot;, obj[...], &quot;\n&quot;)
+            for key, value in obj.attrs.items():
+                print(f&quot;{key}: {value}&quot;)   # Datasetにattributeがあればそれも表示
+
+    # hdf5を読込むwith文
+    with h5py.File(file_path, &quot;r&quot;) as f:
+        f.visititems(print_data)
+
+if __name__ == &quot;__main__&quot;:
+    read_hdf5(FILE_PATH)
+</code></pre>
+<!-- raw HTML omitted -->
+<h3 id="pythonコード-書込み">Pythonコード (書込み)</h3>
+<pre><code>FILE_PATH = &quot;hoge.hdf5&quot;
+
+# hdf5を作成するwith文
+with h5py.File(file_path, &quot;w&quot;) as f:
+    arr1 = np.random.random(size=(10, 10))
+    arr2 = np.random.random(size=(20, 20))
+
+    group1 = f.create_group(&quot;group1&quot;)
+    dataset1 = group1.create_dataset(name=&quot;dataset1&quot;, data=arr1, compression=&quot;gzip)
+    dataset2 = f.create_dataset(name=&quot;group2/dataset2&quot;, data=arr2)
+    dataset2[0,0] = 1
+    dataset2.attrs['description'] = 'TEST'
+    dataset2.attrs['id'] = 1234
+</code></pre>
+<!-- raw HTML omitted -->
 <h3 id="参考情報">参考情報</h3>
 <ul>
-<li><a href="https://www.bnote.net/hugo/build_option.html" target="_blank" rel="noopener noreffer ">未来の投稿記事もビルドする</a></li>
+<li><a href="https://docs.h5py.org/en/stable/" target="_blank" rel="noopener noreffer ">HDF5 for Python</a></li>
+<li><a href="https://qiita.com/skotaro/items/873507dc8f8f967bbc03#fnref5" target="_blank" rel="noopener noreffer ">Pythonを使いHDFファイルの階層構造を把握してデータを読み込む</a></li>
+<li><a href="https://qiita.com/simonritchie/items/23db8b4cb5c590924d95" target="_blank" rel="noopener noreffer ">意外と奥が深い、HDFの世界</a></li>
 </ul></div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
-                <span>Updated on 2024-01-28</span>
+                <span>Updated on 2024-01-30</span>
             </div><div class="post-info-license">
                 <span>MIT</span>
             </div></div>
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/" data-title="Hugoで未来の記事もビルドする方法" data-via="tuttiHobbyist" data-hashtags="Hugo"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/" data-hashtag="Hugo"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/hugo-tips/build_future_article/" data-title="Hugoで未来の記事もビルドする方法"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/" data-title="HDF5の概要" data-via="tuttiHobbyist" data-hashtags="HDF5,Python"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/" data-hashtag="HDF5"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Line" data-sharer="line" data-url="https://tutti-hobbyist.github.io/hugo_blog/posts/python/hdf5/" data-title="HDF5の概要"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@7.3.0/icons/line.svg" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
 
     <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/hugo_blog/tags/hugo/">Hugo</a></section>
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/hugo_blog/tags/hdf5/">HDF5</a>,&nbsp;<a href="/hugo_blog/tags/python/">Python</a></section>
         <section>
             <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/hugo_blog/">Home</a></span>
         </section>
     </div>
 
-    <div class="post-nav"><a href="/hugo_blog/posts/maven/how_to_add_ssl_certification/" class="prev" rel="prev" title="Mavenレポジトリからのダウンロード時に使用するSSL証明書の追加手順"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Mavenレポジトリからのダウンロード時に使用するSSL証明書の追加手順</a>
-            <a href="/hugo_blog/posts/python/hdf5/" class="next" rel="next" title="HDF5の概要">HDF5の概要<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+    <div class="post-nav"><a href="/hugo_blog/posts/hugo-tips/build_future_article/" class="prev" rel="prev" title="Hugoで未来の記事もビルドする方法"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Hugoで未来の記事もビルドする方法</a></div>
 </div>
 </article></div>
             </main><footer class="footer">
