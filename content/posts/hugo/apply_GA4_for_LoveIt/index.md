@@ -37,14 +37,15 @@ rssFullText = false
 1. GA4のGoogleタグを取得
     - Google Analyticsの登録手順は、他サイトを参考にする。
     - Googleタグの確認方法は、[サポートページ](https://support.google.com/analytics/topic/12208141?hl=ja&ref_topic=12154439)の `Google タグ（gtag.js）` セクションを参照する。
-    ```
+    
+    ```JavaScript
     <!-- Google タグ（gtag.js） -->
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=Measurement-ID"></script>
     <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'Measurement-ID');
     </script>
     ```
