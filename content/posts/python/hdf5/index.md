@@ -45,40 +45,44 @@ rssFullText = false
 <br>
 
 ### Pythonコード (読込み)
-    FILE_PATH = "hoge.hdf5"
+```Python
+FILE_PATH = "hoge.hdf5"
 
-    # hdf5を読込み、Datasetを出力する関数
-    def read_hdf5(file_path):
+# hdf5を読込み、Datasetを出力する関数
+def read_hdf5(file_path):
 
-        # Datasetを出力する関数
-        def print_data(name, obj):
-            if isinstance(obj, h5py.Dataset):
-                print(f"========= {name} =========", "\n", obj[...], "\n")
-                for key, value in obj.attrs.items():
-                    print(f"{key}: {value}")   # Datasetにattributeがあればそれも表示
+    # Datasetを出力する関数
+    def print_data(name, obj):
+        if isinstance(obj, h5py.Dataset):
+            print(f"========= {name} =========", "\n", obj[...], "\n")
+            for key, value in obj.attrs.items():
+                print(f"{key}: {value}")   # Datasetにattributeがあればそれも表示
 
-        # hdf5を読込むwith文
-        with h5py.File(file_path, "r") as f:
-            f.visititems(print_data)
+    # hdf5を読込むwith文
+    with h5py.File(file_path, "r") as f:
+        f.visititems(print_data)
 
-    if __name__ == "__main__":
-        read_hdf5(FILE_PATH)
+if __name__ == "__main__":
+    read_hdf5(FILE_PATH)
+```
 <br>
 
 ### Pythonコード (書込み)
-    FILE_PATH = "hoge.hdf5"
+```Python
+FILE_PATH = "hoge.hdf5"
 
-    # hdf5を作成するwith文
-    with h5py.File(file_path, "w") as f:
-        arr1 = np.random.random(size=(10, 10))
-        arr2 = np.random.random(size=(20, 20))
+# hdf5を作成するwith文
+with h5py.File(file_path, "w") as f:
+    arr1 = np.random.random(size=(10, 10))
+    arr2 = np.random.random(size=(20, 20))
 
-        group1 = f.create_group("group1")
-        dataset1 = group1.create_dataset(name="dataset1", data=arr1, compression="gzip)
-        dataset2 = f.create_dataset(name="group2/dataset2", data=arr2)
-        dataset2[0,0] = 1
-        dataset2.attrs['description'] = 'TEST'
-        dataset2.attrs['id'] = 1234
+    group1 = f.create_group("group1")
+    dataset1 = group1.create_dataset(name="dataset1", data=arr1, compression="gzip)
+    dataset2 = f.create_dataset(name="group2/dataset2", data=arr2)
+    dataset2[0,0] = 1
+    dataset2.attrs['description'] = 'TEST'
+    dataset2.attrs['id'] = 1234
+```
 <br>
 
 ### 参考情報

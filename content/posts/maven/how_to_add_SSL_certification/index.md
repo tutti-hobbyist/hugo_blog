@@ -30,7 +30,7 @@ rssFullText = false
 ### 問題
 Maven経由で以下のリポジトリから jhdf5 をダウンロードしようとすると、ビルドエラーが発生する
 - リポジトリ：https://maven.scijava.org/content/groups/public/cisd/jhdf5/
-- エラーログ：![エラーログ](jhdf5_download_log.png)
+- エラーログ：![エラーログ](jhdf5_download_log.png "エラーログ")
 
 ### 原因
 - [ ] ファイアウォール：ブラウザで接続できることを確認した
