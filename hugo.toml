@@ -12,7 +12,7 @@ hasCJKLanguage = true
 contentDir = "content"
 
 # designates where the sites data are generated
-publishDir = "docs"
+publishDir = "public"
 
 [taxonomies]
   category = 'categories'
