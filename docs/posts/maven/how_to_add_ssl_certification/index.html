@@ -37,7 +37,7 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/tutti-hobbyist.github.io\/hugo_blog\/posts\/maven\/how_to_add_ssl_certification\/"
-        },"genre": "posts","keywords": "Maven","wordcount":  721 ,
+        },"genre": "posts","keywords": "Maven","wordcount":  753 ,
         "url": "https:\/\/tutti-hobbyist.github.io\/hugo_blog\/posts\/maven\/how_to_add_ssl_certification\/","datePublished": "2024-01-28T00:00:00+00:00","dateModified": "2024-01-28T00:00:00+00:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
@@ -79,7 +79,7 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Mavenレポジトリからのダウンロード時に使用するSSL証明書の追加手順</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/hugo_blog/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Tuuutti</a></span>&nbsp;<span class="post-category">included in <a href="/hugo_blog/categories/maven/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>Maven</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-01-28">2024-01-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;721 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2024-01-28">2024-01-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;753 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
@@ -167,6 +167,8 @@
 <code>keytool -import -alias {example} -keystore &quot;C:\Program Files\zulu-8\jre\lib\security\cacerts&quot; -file {cert_file_path}</code></li>
 <li>パスワードの入力を求められるので、<code>changeit</code> と入力</li>
 <li>インポートを実施するか確認されるので、<code>Y</code> と入力</li>
+<li>以下コマンドを実行し、証明書が登録されたことを確認
+<code>keytool -list -alias {example} -keystore &quot;C:\Program Files\zulu-8\jre\lib\security\cacerts&quot;</code></li>
 </ol>
 <h3 id="参考情報">参考情報</h3>
 <ul>

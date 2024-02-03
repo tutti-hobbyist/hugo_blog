@@ -54,6 +54,9 @@ Maven経由で以下のリポジトリから jhdf5 をダウンロードしよ�
     `keytool -import -alias {example} -keystore "C:\Program Files\zulu-8\jre\lib\security\cacerts" -file {cert_file_path}`
 3. パスワードの入力を求められるので、`changeit` と入力
 4. インポートを実施するか確認されるので、`Y` と入力
+5. 以下コマンドを実行し、証明書が登録されたことを確認
+    `keytool -list -alias {example} -keystore "C:\Program Files\zulu-8\jre\lib\security\cacerts"`
+
 
 ### 参考情報
 - [素の OpenJDK 8 だと maven のリポジトリからダウンロードに失敗するので対処した件](https://qiita.com/yasumichi/items/de7cfd4b9fe64cbe4045)
