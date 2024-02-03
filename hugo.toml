@@ -14,6 +14,10 @@ contentDir = "content"
 # designates where the sites data are generated
 publishDir = "public"
 
+# Enable Chroma SyntaxHighlight
+pygmentsUseClasses = true
+pygmentsCodefences = true
+
 [taxonomies]
   category = 'categories'
   tag = 'tags'
