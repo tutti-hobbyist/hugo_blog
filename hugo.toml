@@ -6,6 +6,7 @@ theme = 'LoveIt'
 # determines default content language ["en", "ja", "fr", ...]
 defaultContentLanguage = "ja"
 
+# automatic judgement for Japanese/Chinese/Korean
 hasCJKLanguage = true
 
 # designates where the sites articles are located
@@ -17,6 +18,8 @@ publishDir = "public"
 # Enable Chroma SyntaxHighlight
 pygmentsUseClasses = true
 pygmentsCodefences = true
+lineNoStart = 1
+lineNos = true
 
 [taxonomies]
   category = 'categories'
