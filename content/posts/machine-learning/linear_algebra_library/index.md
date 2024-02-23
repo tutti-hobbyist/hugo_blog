@@ -1,5 +1,5 @@
 +++
-title = '多変量解析は multivariate analysis? multivariable analysis?'
+title = 'Numpy高速化を目指して'
 subtitle = ""
 date = 2024-02-23
 lastmod = 2024-02-23
