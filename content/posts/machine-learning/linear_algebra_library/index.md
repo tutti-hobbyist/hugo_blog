@@ -1,5 +1,5 @@
 +++
-title = 'Numpy高速化を目指して'
+title = 'NumPy高速化を目指して'
 subtitle = ""
 date = 2024-02-23
 lastmod = 2024-02-23
@@ -38,7 +38,7 @@ rssFullText = false
 <br>
 
 1. BLASとLAPACKは数値計算を行うソフトウェアの大部分で使用されている
-    - Python (numpy, scipy)
+    - Python (NumPy, SciPy)
     - MATLAB
     - R
     - TensorFlow
@@ -74,14 +74,14 @@ rssFullText = false
 - 有料
 <br>
 
-## Numpy高速化のTips
-- **Numpyの関数を出来るだけ使用** (どうしてもforループから逃げられない場合のみNumba等を検討)
+## NumPy高速化のTips
+- **NumPyの関数を出来るだけ使用** (どうしてもforループから逃げられない場合のみNumba等を検討)
 - 行列の演算は、NumPyの中で利用されているBLASを意識しないと、本来のパフォーマンスを出すことができない (≒ **forループの排除**)
 - インプレイス演算 (a += b) でミュータブルオブジェクトを更新 ([説明記事](https://qiita.com/tsal3290s/items/d8e05dc135dd872993b6))
 
 # 参考情報
 - [線形代数ライブラリ](https://note.com/ymzo76/n/n289ad86271c4)
-- [NumPyではLevel 3 BLASを活かして高速化しよう](https://recruit.cct-inc.co.jp/tecblog/machine-learning/numpy-01/)
+- [NumPyではLevel 3 BLASを活かして高速化しよう](https://recruit.cct-inc.co.jp/tecblog/machine-learning/numPy-01/)
 - [NumPyとSciPyを高速に動かす](https://hackmd.io/@bPWt-odDSNe3X1LQdK606Q/HJnjU5mrB)
 - [高速化Tips](https://kyotogeopython.zawawahoge.com/html/%E5%BF%9C%E7%94%A8%E7%B7%A8/%E9%AB%98%E9%80%9F%E5%8C%96Tips.html)
 - [NumPyによる数値計算の高速化 : 基礎](https://qiita.com/jabberwocky0139/items/c3620fb2f011f20a633b#fnref3)
