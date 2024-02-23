@@ -41,4 +41,4 @@ rssFullText = false
 - [統計学における変量と変数の違い](https://work-in-progress.hatenablog.com/entry/2018/11/14/204905)
 - [多変量解析 ≠ Multivariate analysis](http://nakashimada.blog.jp/archives/35384287.html)
 - [Multivariate？Multivariable？多変量？多変数？](https://necostat.hatenablog.jp/entry/2022/10/31/070059)
-- [ultivariate or Multivariable Regression?](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3518362/)
+- [Multivariate or Multivariable Regression?](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3518362/)
