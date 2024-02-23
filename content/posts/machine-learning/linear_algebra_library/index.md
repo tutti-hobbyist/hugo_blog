@@ -27,11 +27,11 @@ rssFullText = false
 
 <!--more-->
 
-### 背景
+# 背景
 業務で計算速度高速化を目指している際に、線形代数ライブラリに関する言及をいくつか見つけたので、備忘録としてまとめておく
 
-### まとめ
-#### 線形代数ライブラリの概要
+# まとめ
+## 線形代数ライブラリの概要
 1. 線形代数ライブラリとは、以下2つをパッケージングしたライブラリ
     - BLAS (Basic Linear Algebra Subprograms)：ベクトルと行列のかけ算や足し算を担う
     - LAPACK (Linear Algebra PACKage)：連立線型方程式や固有値方程式、特異値分解の解法を担う
@@ -57,29 +57,29 @@ rssFullText = false
 1. DGEMM (BLASに含まれる行列積計算ルーチン) は高性能比較のベンチマークによく用いられる
 <br>
 
-#### 主要線形代数ライブラリ
-##### BLAS/LAPACK
+## 主要線形代数ライブラリ
+### BLAS/LAPACK
 - Netlib公式参照実装
 - DGEMM：理論最高性能の 10 % 程度
 - パブリックドメインライセンスで自由に利用可能
 
-##### ATLAS
+### ATLAS
 - パラメータサーベイによって BLASを自動チューニングする実装
 - DGEMM：理論最高性能の 80 % 程度
 - BSDライセンスのオープンソース
 
-##### MKL
+### MKL
 - Intel製の数値計算ライブラリ
 - DGEMM：理論最高性能の 96~97 % 程度
 - 有料
 <br>
 
-#### Numpy高速化のTips
+## Numpy高速化のTips
 - **Numpyの関数を出来るだけ使用** (どうしてもforループから逃げられない場合のみNumba等を検討)
 - 行列の演算は、NumPyの中で利用されているBLASを意識しないと、本来のパフォーマンスを出すことができない (≒ **forループの排除**)
 - インプレイス演算 (a += b) でミュータブルオブジェクトを更新 ([説明記事](https://qiita.com/tsal3290s/items/d8e05dc135dd872993b6))
 
-### 参考情報
+# 参考情報
 - [線形代数ライブラリ](https://note.com/ymzo76/n/n289ad86271c4)
 - [NumPyではLevel 3 BLASを活かして高速化しよう](https://recruit.cct-inc.co.jp/tecblog/machine-learning/numpy-01/)
 - [NumPyとSciPyを高速に動かす](https://hackmd.io/@bPWt-odDSNe3X1LQdK606Q/HJnjU5mrB)
