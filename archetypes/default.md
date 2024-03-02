@@ -4,6 +4,7 @@ subtitle = ""
 date = {{ .Date }}
 lastmod = {{ .Date }}
 draft = false
+useKaTex = false
 author = "Tuuutti"
 authorLink = ""
 description = ""
