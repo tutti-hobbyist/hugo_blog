@@ -4,6 +4,7 @@ subtitle = ""
 date = 2024-02-26
 lastmod = 2024-03-02
 draft = false
+useMath = true
 author = "Tuuutti"
 authorLink = ""
 description = ""
@@ -51,14 +52,14 @@ rssFullText = false
 ### 相互情報量（Pointwise Mutual Information, PMI）
 - 2つの事象が同時に起こる確率がそれぞれの事象が独立して起こる確率に対してどれだけ上回るかを示す尺度
 - 以下の式で計算される
-$PMI(x, y) = \log \left( \frac{P(x, y)}{P(x) \cdot P(y)} \right)$
+$$PMI(x, y) = \log \left( \frac{P(x, y)}{P(x) \cdot P(y)} \right)$$
 - コーパスに含まれる単語の語彙数が増えると疎行列となるため、ノイズの影響を受けやすくなる
 → 次元削減による密行列への変換を実施
 
 ### 特異値分解（Singular Value Decomposition, SVD）
 - 次元削減手法の1つ
 - 以下の式で計算され、ある行列を2つの直行行列と対角行列（対角成分が特異値）の行列積として分解する
-$A = UΣV^T$
+$$A = UΣV^T$$
 - np.linalg.svd()は全ての特異値に対して計算するため処理に時間がかかる。一方、Trancated SVD (e.g. sklearn.decomposition.TruncatedSVD) は**特異値の大きいベクトルだけを計算**するため処理が早い。
 - 分解後の行列 $U$ を新しい単語の分散表現として使用することで、単語の類似度をより精度よく計算できる
 
