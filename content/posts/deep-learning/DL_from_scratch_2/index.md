@@ -83,13 +83,17 @@ $$A = UΣV^T$$
 
 ## RNNモデル
 - 順序を取り扱う必要のあるデータ（時系列データや言語データ）に対するDLモデル
+- RNNは前時刻に計算した結果を用いて逐次的に計算を行うため、時間方向に対する並列計算が基本的にはできないので、並列計算による高速化の実現が難しい
 - 純粋なRNNモデルでは、逆伝播時に以下の問題が生じる
     - 時間方向の勾配消失 → LSTMやGRUなどのゲート付きRNNで解決
     - 時間方向の勾配爆発 → 勾配クリッピングで解決
     - 深さ方向の勾配消失 → Skip結合で解決
 
 ## 注意機構（Attention）
+ある単語に対応した**情報を「選ぶ」という操作は微分不可能**であり、逆伝播によるモデルの学習が行えない。そこである単語ではなく全単語を用いて行列積（微分可能）として、**単語ごとの重要度（Attention-weight）を計算**することで、**疑似的に「選ぶ」という計算を実現**し、逆伝播による学習も行えるようにしたLayerのこと。
+
 ![Attention](attention.png "Attentionの概略図")
+
 ### 用語の意味
 - クエリ（Q）：他のデータとの関連性を調べたいデータの集まり
     - Source-Target-Attentionの場合：翻訳先の言語データ
@@ -98,14 +102,19 @@ $$A = UΣV^T$$
 - バリュー（V）：キーで使用するデータが保持する値
 
 ### Source-Target-Attention
-![Source-Target-Attention](Source-Target-Attention.png "Source-Target-Attentionの概略図")
 - **異なる入力**の関連性を計算
 - 例として、Encoderに翻訳元の言語データ、Decoderに翻訳先の言語データを用いて、翻訳元の言語と翻訳先の言語の単語の関連性を学習することが挙げられる
 
+![Source-Target-Attention_1](Source-Target-Attention_1.png "Source-Target-Attentionの概略図_1")
+![Source-Target-Attention_2](Source-Target-Attention_2.png "Source-Target-Attentionの概略図_2")
+
 ### Self-Attention
-![Self-Attention](Self-Attention.png "Self-Attentionの概略図")
 - **同じ入力の異なる要素（たとえば、単語）同士**の関連性を計算
 - 例として、文章の文法や構造、単語同士の関係性を学習することが挙げられる
 
+![Self-Attention_1](Self-Attention_1.png "Self-Attentionの概略図_1")
+![Self-Attention_2](Self-Attention_2.png "Self-Attentionの概略図_2")
+
 # 参考情報
 - [【自然言語処理】Attentionとは何か](https://omathin.com/what-is-attention-1/)
+- [Self Attentionについて](https://www.taida-information.com/?p=403)
