@@ -4,6 +4,7 @@ subtitle = ""
 date = 2024-02-23
 lastmod = 2024-02-23
 draft = true
+KaTex = true
 author = "Tuuutti"
 authorLink = ""
 description = ""

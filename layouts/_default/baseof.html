@@ -8,7 +8,7 @@
         <meta name="robots" content="noodp" />
         <title>{{ block "title" . }}{{ .Site.Title }}{{ end }}</title>
 
-        {{- if .Params.useKaTex}} {{- partial "head/apply-KaTex.html" . -}} {{- end }}
+        {{- if .Params.KaTex}} {{- partial "head/apply-KaTex.html" . -}} {{- end }}
         {{- partial "head/additional-custom-head-for-GA4.html" . -}}
         {{- partial "head/meta.html" . -}}
         {{- partial "head/link.html" . -}}
