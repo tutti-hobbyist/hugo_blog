@@ -1,5 +1,5 @@
 +++
-title = '【読書記録】Vision Transfoer入門'
+title = '【読書記録】Vision Transformer入門'
 subtitle = ""
 date = 2024-03-06
 lastmod = 2024-03-10
