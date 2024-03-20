@@ -4,7 +4,7 @@ subtitle = ""
 date = 2024-03-06
 lastmod = 2024-03-10
 draft = false
-KaTex = false
+KaTex = true
 author = "Tuuutti"
 authorLink = ""
 description = ""
@@ -30,7 +30,7 @@ rssFullText = false
 
 # 書籍関連リンク
 - [Vision Transformer入門](https://gihyo.jp/book/2022/978-4-297-13058-9)
-- [GitHubレポジトリ](https://github.com/ghmagazine/vit_book)
+- [GitHubリポジトリ](https://github.com/ghmagazine/vit_book)
 
 # まとめ
 ## ViTの構成

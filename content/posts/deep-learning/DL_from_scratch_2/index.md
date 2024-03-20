@@ -30,7 +30,7 @@ rssFullText = false
 
 # 書籍関連リンク
 - [ゼロから作るDeep Learning 2 ―自然言語処理編](https://www.oreilly.co.jp/books/9784873118369/)
-- [GitHubレポジトリ](https://github.com/oreilly-japan/deep-learning-from-scratch-2)
+- [GitHubリポジトリ](https://github.com/oreilly-japan/deep-learning-from-scratch-2)
 
 # まとめ
 ## カウントベースの手法の流れ
