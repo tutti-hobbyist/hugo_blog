@@ -532,3 +532,8 @@ lineNos = true
     polyfill = false
     # whether to use object-fit-images to be compatible with older browsers
     objectFit = false
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      hardWraps = true
