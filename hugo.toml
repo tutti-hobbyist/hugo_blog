@@ -42,15 +42,20 @@ lineNos = true
     URL = '/posts/'
     weight = 3
 [[menu.main]]
-    identifier = "tags"
-    name = 'Tags'
-    URL = '/tags/'
+    identifier = "articles"
+    name = 'Articles'
+    URL = '/posts/articles/'
     weight = 4
 [[menu.main]]
     identifier = "categories"
     name = 'Categories'
     URL = '/categories/'
     weight = 5
+[[menu.main]]
+    identifier = "tags"
+    name = 'Tags'
+    URL = '/tags/'
+    weight = 6
 
 [module]
   [module.hugoVersion]
