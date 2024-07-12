@@ -2,7 +2,7 @@
 title = '【読書記録】ゆっくり、いそげ'
 subtitle = ""
 date = 2024-07-12
-lastmod = 2024-07-1
+lastmod = 2024-07-12
 draft = false
 KaTex = false
 author = "Tuuutti"
