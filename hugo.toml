@@ -203,7 +203,7 @@ lineNos = true
     [params.home.posts]
       enable = true
       # special amount of posts in each home posts page
-      paginate = 5
+      paginate = 10
   # Social config in home page
   [params.social]
     GitHub = "tutti-hobbyist"
