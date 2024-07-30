@@ -58,6 +58,7 @@ rssFullText = false
 4. 仮想環境のアクティベート：`.\.venv\Scripts\activate` → 0.1 秒
 5. 依存関係の追加：`rye add pandas` → 9.0 秒
 6. ライブラリのインストール：`rye sync` → 0.5 秒
+7. インストールしたライブラリの確認：`rye list`
 
 ### Poetry
 > - pyenvでPython 3.10.9はインストール済みの状態で速度を計測する
@@ -71,6 +72,7 @@ rssFullText = false
 4. 選択したPythonバージョンで仮想環境を作成：`poetry env use python` → 5.4 秒
 5. 仮想環境のアクティベート：`.\.venv\Scripts\activate` → 0.1 秒
 6. ライブラリのインストール：`poetry add pandas` → 15.5 秒
+7. インストールしたライブラリの確認：`poetry show`
 
 ### (補足) venv/virtualenv
 > - どちらも仮想環境を作成したいバージョンのPythonをインストールしておく必要がある
@@ -81,6 +83,7 @@ rssFullText = false
 1. 仮想環境の作成：`python3 -m venv venv` → 16.1 秒
 2. 仮想環境のアクティベート：`.\venv\Scripts\activate` → 0.4 秒
 3. ライブラリのインストール：`pip install pandas` → 61.8 秒
+4. インストールしたライブラリの確認：`pip list`
 
 **virtualenv**
 > - Pythonのパッケージであり、`pip install virtualenv` でインストール
@@ -88,6 +91,7 @@ rssFullText = false
 1. 仮想環境の作成：`python3 -m virtualenv -p python3.10 venv` → 5.0 秒
 2. 仮想環境のアクティベート：`.\venv\Scripts\activate` → 0.1 秒
 3. ライブラリのインストール：`pip install pandas` → 80.7 秒
+4. インストールしたライブラリの確認：`pip list`
 
 
 ### 参考情報
