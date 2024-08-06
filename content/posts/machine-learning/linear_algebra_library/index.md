@@ -2,7 +2,7 @@
 title = 'NumPy高速化を目指して'
 subtitle = ""
 date = 2024-02-23
-lastmod = 2024-02-23
+lastmod = 2024-08-06
 draft = false
 author = "Tuuutti"
 authorLink = ""
@@ -75,9 +75,10 @@ rssFullText = false
 <br>
 
 ## NumPy高速化のTips
-- **NumPyの関数を出来るだけ使用** (どうしてもforループから逃げられない場合のみNumba等を検討)
+- **NumPyの関数を出来るだけ使用** (どうしてもforループから逃げられない場合のみNumba等を検討 ([参考記事](https://okumuralab.org/~okumura/python/numba.html)))
+    {{< gist tutti-hobbyist a49f5e1c9c422b9f904a1dc0343498ca >}}
 - 行列の演算は、NumPyの中で利用されているBLASを意識しないと、本来のパフォーマンスを出すことができない (≒ **forループの排除**)
-- インプレイス演算 (a += b) でミュータブルオブジェクトを更新 ([説明記事](https://qiita.com/tsal3290s/items/d8e05dc135dd872993b6))
+- インプレイス演算 (a += b) で **ミュータブルオブジェクトを更新** ([説明記事](https://qiita.com/tsal3290s/items/d8e05dc135dd872993b6))
 
 # 参考情報
 - [線形代数ライブラリ](https://note.com/ymzo76/n/n289ad86271c4)
