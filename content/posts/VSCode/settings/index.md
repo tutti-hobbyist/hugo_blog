@@ -38,7 +38,7 @@ rssFullText = false
         - ファイルの保存場所は `./vscode/` 配下
         - プロジェクトで共有/推奨したい設定を記載
     - User設定
-        - ファイルの保存場所は `%APPDATA%/code/User/` 配下
+        - ファイルの保存場所は `%APPDATA%/code/User/` or `%APPDATA%/cursor/User/` 配下
         - ユーザーごとに好みの設定を記載
 
 ![VSCodeの設定画面](setting.png "VSCodeの設定画面")
@@ -46,7 +46,7 @@ rssFullText = false
 ### 設定ファイルの種類と役割
 - settings.json
     - 役割：エディタの外観、動作、拡張機能の設定などをカスタマイズ
-    - `%APPDATA%/code/User/` 配下に記述することで、User設定を変更可能
+    - `%APPDATA%/code/User/` or `%APPDATA%/cursor/User/` 配下に記述することで、User設定を変更可能
         → VSCodeのDefault設定から変更したい項目を指定
     - `./vscode/` 配下にアップすることで、プロジェクト内のみで一時的に適用する設定を指定可能
         → 全プロジェクトで共通の設定をUser設定、プロジェクト単位で使い分けたい設定をWorkspace設定とする
@@ -61,7 +61,7 @@ rssFullText = false
         ```
 - keybindings.json
     - 役割：既存のキーバインディングを変更したり、新しいショートカットを追加
-    - `%APPDATA%/code/User/` 配下に記述することで、User設定を変更可能
+    - `%APPDATA%/code/User/` or `%APPDATA%/cursor/User/` 配下に記述することで、User設定を変更可能
         → VSCodeのDefault設定から変更したい項目を指定
     - `./vscode/` 配下にアップすることで、プロジェクト内のみで一時的に適用する設定を指定可能
         → 全プロジェクトで共通の設定をUser設定、プロジェクト単位で使い分けたい設定をWorkspace設定とする
@@ -145,7 +145,7 @@ rssFullText = false
 - `Export` を選択し、vsc-extensions.txt がカレントディレクトリに生成されることを確認
 - vsc-extensions.txt を適宜更新することで、拡張機能を管理
 - `Ctrl + Shift + P` でコマンドパレットを開き、`VSC Extensions` と入力
-- `Import` を選択し、必要な拡張機能をインストール  
+- `Import` を選択し、必要な拡張機能をインストール
 
 ## 便利な拡張機能
 {{< gist tutti-hobbyist 70fbb47b4774ee1c334df9e6d626f474 >}}
