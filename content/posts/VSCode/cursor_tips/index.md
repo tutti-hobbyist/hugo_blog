@@ -1,8 +1,8 @@
 +++
 title = 'Cursorの使い方'
 subtitle = ""
-date = 2024-09-xx
-lastmod = 2024-09-xx
+date = 2024-09-23
+lastmod = 2024-09-23
 draft = false
 KaTex = false
 author = "Tuuutti"
