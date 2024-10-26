@@ -266,7 +266,7 @@ rssFullText = false
 - SQLクエリが遅い場合の対策
   - 逐次実行されており、クエリの処理速度自体が遅い場合：スケールアップ（クラスターサイズの変更 → ワーカーノード数の増加）
   - 並列/同時実行やユーザ数が多く、クエリがキューに溜まっている場合：スケールアウト（クラスターバウンドの追加 → クラスター数の増加）
-  ![SQL_scale_change](SQL_scale_change.png)
+  ![SQL_scale_change](SQL_scale_change.png "Endpointの設定画面")
 
 ## ジョブ
 - ジョブのスケジュールと構成のバージョン管理可能な構成を取得するために、JobのページからJSONをダウンロードできる
@@ -301,9 +301,9 @@ rssFullText = false
 - 動的ビューを活用することで、テーブルの行や列に対するアクセス制御を行うことが可能
 - 付与できる権限の違い
   - Unity Catalog
-    ![All privileges in Unity Catalog](all_privileges_unity_catalog.png)
+    ![All privileges in Unity Catalog](all_privileges_unity_catalog.png "Unity Catalogの全権限")
   - Table ACL
-    ![All privileges in Table ACL](all_privileges_table_acl.png)
+    ![All privileges in Table ACL](all_privileges_table_acl.png "Tableの全権限")
 
 ## Databricks SQL Warehouse
 - SQL warehouses (Query) page からクエリの自動更新のタイミングを設定可能
@@ -317,9 +317,9 @@ rssFullText = false
 
 # チートシート
 ## SQL
-![SQL_cheatsheet_1](SQL_cheatsheet_1.png)
-![SQL_cheatsheet_2](SQL_cheatsheet_2.png)
+![SQL_cheatsheet_1](SQL_cheatsheet_1.png "")
+![SQL_cheatsheet_2](SQL_cheatsheet_2.png "")
 
 ## PySpark
-![PySpark_cheatsheet_1](PySpark_cheatsheet_1.png)
-![PySpark_cheatsheet_2](PySpark_cheatsheet_2.png)
+![PySpark_cheatsheet_1](PySpark_cheatsheet_1.png "")
+![PySpark_cheatsheet_2](PySpark_cheatsheet_2.png "")
