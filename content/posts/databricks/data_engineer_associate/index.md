@@ -57,11 +57,11 @@ rssFullText = false
   - ストレージフレームワークであり、特定のストレージフォーマットのことではない
   - Lakehouseであり、WarehouseやDatabaseではない
   - ファイルはParquetフォーマットで保存され、ファイルのtransactionログも、_delta_log 配下にトランザクションごとにjsonファイルに記録される
-    ![delta_table](delta_table.png)
+    ![delta_table](delta_table.png "Delta Lakeのファイル保持方法")
   - ACIDトランザクションを提供
 - Hive Metastoreは、メタデータのリポジトリであり、テーブル定義・データフォーマット・データの保存先などに関するメタデータを保持している
 - Unity Catalog の階層構造
-  ![Unity Catalog](unity_catalog_hierarchy.png)
+  ![Unity Catalog](unity_catalog_hierarchy.png "Unity Catalog の階層構造")
 
 ## スクリプト
 ### マジックコマンド
