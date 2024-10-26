@@ -317,9 +317,9 @@ rssFullText = false
 
 # チートシート
 ## SQL
-![SQL_cheatsheet_1](SQL_cheatsheet_1.png "")
-![SQL_cheatsheet_2](SQL_cheatsheet_2.png "")
+![SQL_cheatsheet_1](SQL_cheatsheet_1.png " ")
+![SQL_cheatsheet_2](SQL_cheatsheet_2.png " ")
 
 ## PySpark
-![PySpark_cheatsheet_1](PySpark_cheatsheet_1.png "")
-![PySpark_cheatsheet_2](PySpark_cheatsheet_2.png "")
+![PySpark_cheatsheet_1](PySpark_cheatsheet_1.png " ")
+![PySpark_cheatsheet_2](PySpark_cheatsheet_2.png " ")
