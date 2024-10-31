@@ -2,7 +2,7 @@
 title = 'Databricks Certified Data Engineer Associate 試験勉強まとめ'
 subtitle = ""
 date = 2024-10-26
-lastmod = 2024-10-26
+lastmod = 2024-10-31
 draft = false
 KaTex = false
 author = "Tuuutti"
@@ -42,6 +42,13 @@ rssFullText = false
 - [Z-Order Visualized](https://www.youtube.com/watch?v=ncqSjHeZTxU)
 - [Data Science Cheat Sheets](https://www.datacamp.com/cheat-sheet)
 
+# 試験結果
+- Databricks Lakehouse Platform : 90%
+- ETL with Spark SQL and Python : 76%
+- Incremental Data Processing : 83%
+- Production Pipelines : 71%
+- Data Governance : 100%
+
 # まとめ
 ## プラットフォーム
 - 以下２つの構成に分離されている
@@ -66,7 +73,7 @@ rssFullText = false
 ## スクリプト
 ### マジックコマンド
 - %run コマンドを使用することで、Databricks上の他のNotebookを実行可能 (他のNotebookで宣言した変数も共有される)
-- %shコマンドを使用することで、Databricks上のVMでシェルコマンドを実行可能
+- %sh コマンドを使用することで、Databricks上のVMでシェルコマンドを実行可能
 - `dbutils.help()` で、dbutilsのヘルプを参照可能
 - `%fs ls {table_location}` で、テーブルのParquetとトランザクションログの実態を確認可能
 
