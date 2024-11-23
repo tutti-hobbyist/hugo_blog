@@ -2,7 +2,7 @@
 title = 'Apache Spark徹底入門'
 subtitle = ""
 date = 2024-11-12
-lastmod = 2024-11-12
+lastmod = 2024-11-23
 draft = false
 KaTex = false
 author = "Tuuutti"
@@ -318,24 +318,24 @@ rssFullText = false
   | **機能**           | **Pandas**      | **PySpark**      |
   |----------------|--------------|-------------------------|
   | **ライブラリのインポートと設定** | `import pandas as pd`<br>`pd.options.display.max_colwidth = 1000` | `from pyspark.sql.types import *`<br>`from pyspark.sql.functions import *`<br>`from pyspark.sql import SQLContext` |
-  | **データセットの作成**       | `data = {'col1': [ ], 'col2': [ ]}`<br>`df = pd.DataFrame(data, columns=['col1', 'col2'])` | `StructField('Col1', IntegerType())`<br>`StructField('Col2', StringType())`<br>`schema = StructType([list of StructFields])`<br>`df = SQLContext(sc).createDataFrame(sc.emptyRDD(), schema)` |
-  | **CSVの読み込みと書き込み**   | `df.read_csv()`<br>`df.to_csv()`                | `SQLContext(sc).read.csv()`<br>`df.toPandas().to_csv()`    |
-  | **インデックスと分割**       | `df.loc[]`<br>`df.iloc[]`                       | `df.randomSplit(weights=[ ], seed=n)`                       |
-  | **データの確認**           | `df.head()`<br>`df.columns`<br>`df.shape`       | `df.show()`<br>`df.head(n)`<br>`df.printSchema()`<br>`df.columns`<br>`df.count()` |
-  | **重複データの処理**         | `df.unique()`<br>`df.duplicated()`<br>`df.drop_duplicates()` | `df.distinct().count()`<br>`df.dropDuplicates()`                     |
-  | **列名の変更**               | `df.rename(columns={"oldcol":"new-col"})`              | `df.withColumnRenamed("oldcol","new-col")`                           |
-  | **欠損データの処理**         | `df.dropna()`<br>`df.fillna()`<br>`df.replace()`<br>`df['col'].isna()`<br>`df['col'].isnull()`<br>`df['col'].notna()`<br>`df['col'].notnull()` | `df.na.drop()`<br>`df.na.fill()`<br>`df.na.replace()`<br>`df.col.isNull()`<br>`df.col.isNotNull()` |
-  | **一般的な列の操作**         | `df['col'] = df['col'].str.lower()`<br>`df['col'] = df['col'].str.replace()`<br>`df['col'] = df['col'].str.split()`<br>`df['col'] = df['col'].str.join()`<br>`df['col'] = df['col'].str.strip()` | `df = df.withColumn('col', lower(df.col))`<br>`df = df.select('*',regexp_replace().alias())`<br>`df = df.withColumn('col', split('col'))`<br>`df = df.withColumn('col', udf.join(df.col, lit(' ')))`<br>`df = df.withColumn('col', trim(df.col))` |
+  | **データセットの作成**    | `data = {'col1': [ ], 'col2': [ ]}`<br>`df = pd.DataFrame(data, columns=['col1', 'col2'])` | `StructField('Col1', IntegerType())`<br>`StructField('Col2', StringType())`<br>`schema = StructType([list of StructFields])`<br>`df = SQLContext(sc).createDataFrame(sc.emptyRDD(), schema)` |
+  | **CSVの読み込みと書き込み**   | `df.read_csv()`<br>`df.to_csv()`   | `SQLContext(sc).read.csv()`<br>`df.toPandas().to_csv()`    |
+  | **インデックスと分割**    | `df.loc[]`<br>`df.iloc[]`     | `df.randomSplit(weights=[ ], seed=n)`     |
+  | **データの確認**   | `df.head()`<br>`df.columns`<br>`df.shape`    | `df.show()`<br>`df.head(n)`<br>`df.printSchema()`<br>`df.columns`<br>`df.count()` |
+  | **重複データの処理**      | `df.unique()`<br>`df.duplicated()`<br>`df.drop_duplicates()` | `df.distinct().count()`<br>`df.dropDuplicates()`   |
+  | **列名の変更**  | `df.rename(columns={"oldcol":"new-col"})`      | `df.withColumnRenamed("oldcol","new-col")`    |
+  | **欠損データの処理**      | `df.dropna()`<br>`df.fillna()`<br>`df.replace()`<br>`df['col'].isna()`<br>`df['col'].isnull()`<br>`df['col'].notna()`<br>`df['col'].notnull()` | `df.na.drop()`<br>`df.na.fill()`<br>`df.na.replace()`<br>`df.col.isNull()`<br>`df.col.isNotNull()` |
+  | **一般的な列の操作**      | `df['col'] = df['col'].str.lower()`<br>`df['col'] = df['col'].str.replace()`<br>`df['col'] = df['col'].str.split()`<br>`df['col'] = df['col'].str.join()`<br>`df['col'] = df['col'].str.strip()` | `df = df.withColumn('col', lower(df.col))`<br>`df = df.select('*',regexp_replace().alias())`<br>`df = df.withColumn('col', split('col'))`<br>`df = df.withColumn('col', udf.join(df.col, lit(' ')))`<br>`df = df.withColumn('col', trim(df.col))` |
   | **ユーザー定義関数の適用**   | `df['col'] = df['col'].map(UDF)`<br>`df.apply(f)`<br>`df.applyMap(f)` | `df = df.withColumn('col', UDF(df.col))`<br>`df = df.withColumn('col', when(cond, UDF(df.col)).otherwise())` |
-  | **2つの列の結合**           | `df['new_col'] = df['col1'] + df['col2']`             | `df = df.withColumn('new_col', concat_ws(',',df.col1,df.col2))`<br>`df.select('*',concat(df.col1,df.col2).alias('new_col'))` |
-  | **列をリストに変換**         | `list(df['col'])`                                      | `df.select("col").rdd.flatMap(lambda x:x).collect()`                |
-  | **データのフィルタリング**   | `df = df[df['col'] != ""]`                             | `df = df[df['col'] == val]`<br>`df = df.filter(df['col'] == val)`   |
-  | **列の選択**                 | `df = df[['col1','col2','col3']]`                      | `df = df.select('col1','col2','col3')`                              |
-  | **列の削除**                 | `df.drop(['B','C'], axis=1)`<br>`df.drop(columns=['B', 'C'])` | `df.drop('col1','col2')`                                            |
-  | **データのグループ化**       | `df.groupby(by=['col1','col2']).count()`               | `df.groupBy('col').count().show()`                                  |
-  | **データの結合**             | `pd.concat([df1,df2])`<br>`df1.append(df2)`<br>`df1.join(df2)` | `df1.union(df2)`<br>`df1.join(df2)`                                 |
-  | **直積**                    | `df1['key'] = 1`<br>`df2['key'] = 1`<br>`df1.merge(df2, how='outer', on='key')` | `df1.crossJoin(df2)`                                                |
-  | **データのソート**           | `df.sort_values()`<br>`df.sort_index()`                | `df.sort()`<br>`df.orderBy()`                                       |
+  | **2つの列の結合**       | `df['new_col'] = df['col1'] + df['col2']`   | `df = df.withColumn('new_col', concat_ws(',',df.col1,df.col2))`<br>`df.select('*',concat(df.col1,df.col2).alias('new_col'))` |
+  | **列をリストに変換**     | `list(df['col'])`    | `df.select("col").rdd.flatMap(lambda x:x).collect()`      |
+  | **データのフィルタリング**   | `df = df[df['col'] != ""]`       | `df = df[df['col'] == val]`<br>`df = df.filter(df['col'] == val)`   |
+  | **列の選択**       | `df = df[['col1','col2','col3']]`      | `df = df.select('col1','col2','col3')`  |
+  | **列の削除**       | `df.drop(['B','C'], axis=1)`<br>`df.drop(columns=['B', 'C'])` | `df.drop('col1','col2')`    |
+  | **データのグループ化**   | `df.groupby(by=['col1','col2']).count()`     | `df.groupBy('col').count().show()`      |
+  | **データの結合**   | `pd.concat([df1,df2])`<br>`df1.append(df2)`<br>`df1.join(df2)` | `df1.union(df2)`<br>`df1.join(df2)`     |
+  | **直積**    | `df1['key'] = 1`<br>`df2['key'] = 1`<br>`df1.merge(df2, how='outer', on='key')` | `df1.crossJoin(df2)`  |
+  | **データのソート**       | `df.sort_values()`<br>`df.sort_index()`      | `df.sort()`<br>`df.orderBy()`     |
 ### SparkSQL
 ![Spark SQL architecture and interface](spark_sql_architecture.png "Spark SQL architecture and interface")
 - SparkSQLのCatalystOptimizerは、計算クエリを受け取り、実行計画に変換する
@@ -651,13 +651,260 @@ t_c.show()
   ```
 
 ## 6章
-###
+### Datasetエンコーダ
+- エンコーダはSpark内部のTungstenフォーマットからJVM Javaオブジェクトに変換（シリアライズ・デシリアライズ）
+### Dataset利用時のコスト
+- Datasetが高階関数に渡される場合、Spark内部のTungstenフォーマットからJVMオブジェクトにデシリアライズするためのコストが発生
+- コスト削減のための戦略
+  1. DSL式をクエリに使用し、高階関数の引数としてラムダを過剰に使用しない
+  2. シリアライズとデシリアライズを最小限に抑えるためにクエリを連鎖させる
+  ```Scala
+  import java.util.Calendar
+  val earliestYear = Calendar.getInstance.get(Calendar.YEAR) - 40
+
+  Person(
+    id: Integer, 
+    firstName: String, 
+    middleName: String, 
+    lastName: String, 
+    gender: String, 
+    birthDate: String, 
+    ssn: String, 
+    salary: String
+    )
+
+  // シリアライズとデシリアライズが発生する場合 (効率悪い)
+  personDS
+  .filter(x => x.birthDate.split("-")(0).toInt > earliestYear) // Lambda
+  .filter($"salary" > 80000) // DSL
+  .filter(x => x.lastName.startsWith("J")) //Lambda
+  .filter($"firstName".startsWith("D")) // DSL
+  .count()
+  ```
+  ![DSLとLambda](DSL_and_Lambda.png, " ")
+  ```Scala
+  // DSLのみの場合 (効率良い)
+  personDS
+  .filter(year($"birthDate") > earliestYear) // Everyone above 40 
+  .filter($"salary" > 80000) // Everyone earning more than 80K
+  .filter($"lastName".startsWith("J")) // Last name starts with J
+  .filter($"firstName".startsWith("D")) // First name starts with D
+  .count()
+  ```
 
 ## 7章
-###
+### Spark Configurationの表示と設定
+- 設定項目は公式ドキュメントを参照
+  - https://spark.apache.org/docs/3.5.2/configuration.html#spark-configuration
+```python
+from pprint import pprint
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.getOrCreate()
+conf = spark.sparkContext.getConf()
+
+# 表示
+pprint(conf.getAll())
+
+# 設定
+conf.set({key}: {value})
+```
+### 動的リソース割り当て
+- 動的リソース割り当てを有効にすると、大規模なワークロードの需要の増減に応じて、Spark Driverがコンピュートリソースを要求。使用していないときはExecutorを解放し、必要な時に新しいExecutorを取得。
+- 動的リソース割り当ては、以下のような処理データ量が一定ではないケースで役立つ
+  - データフロー量が不均一なストリーミング
+  - 大量のSQLクエリのオンデマンド処理
+- Config設定
+  ```text
+  spark.dynamicAllocation.enabled true
+  spark.dynamicAllocation.minExecutors 2
+  spark.dynamicAllocation.schedulerBacklogTimeout 1m
+  spark.dynamicAllocation.maxExecutors 20
+  spark.dynamicAllocation.executorIdleTimeout 2m
+  ```
+  - spark.dynamicAllocation.enabled  
+    -> 動的リソース割り当ての有効化
+  - spark.dynamicAllocation.minExecutors  
+    -> Executorの作成数の下限
+  - spark.dynamicAllocation.schedulerBacklogTimeout  
+    -> スケジュールされていない保留中のTaskが、指定時間内に処理されなかった場合、Driverは新しいExecutorの起動を要求
+  - spark.dynamicAllocation.maxExecutors  
+    -> Executorの作成数の上限
+  - spark.dynamicAllocation.executorIdleTimeout  
+    -> ExecutorがTaskを終了して指定時間アイドル状態になると、DriverはExecutorを終了する
+### Spark Executorのメモリ設定
+- 各Executorが利用できるメモリ量は、spark.executor.memoryで制御される
+- メモリは、実行メモリ、ストレージメモリ、予約メモリの3つのセクションに分かれている
+  - 実行メモリ（デフォルト：60%）：shuffle, join, sort, aggregationで使用
+  - ストレージメモリ（デフォルト：40％）：データ構造やDataFrameから派生したPartitionのCacheで使用
+  - 予約メモリ（デフォルト：300MB）：OOMエラーに備えた予備
+### 並列処理の最大化
+- Partition：ディスク上の連続したデータを、設定可能で読み取り可能な塊やブロックのサブセットに配置する方法
+- Spark jobの各Taskは個別のPartitionのデータを処理
+- リソース利用を最適化し、並列性を最大化するには、Executor上のコア数とPartitionの数が同じ状態が理想
+  ![並列性を最大化する状態](maximize_parallel.png, "並列性を最大化する状態")
+- SparkのTaskはディスクからメモリに読み込まれたPartitionとしてデータを処理
+- SparkのPartitionの最大サイズのデフォルト値は128MB
+- ファイルサイズの小さいPartitionが多いと、ディスクI/Oが多くなり、パフォーマンスに影響を及ぼす
+### データのキャッシュと永続化
+- CacheとPersistenceはSparkでは同義だが、cache()とpersist()の2つのAPIコールには違いがあり、persist()はデータの保存方法と場所を詳細に制御可能
+- cache()の利用による速度改善の比較
+  ```python
+  from pyspark.sql import SparkSession
+  import time
+
+  spark = SparkSession.builder.getOrCreate()
+
+  # サンプルデータの生成
+  data = [(i, i * 2, i * 3) for i in range(1, 1000001)] # 100万行のデータ
+  columns = ["col1", "col2", "col3"]
+  df = spark.createDataFrame(data, columns)
+
+  # 重い計算を模倣するクエリ（集計処理）
+  def perform_heavy_query(df):
+      return df.groupBy("col1").agg({"col2": "sum", "col3": "max"})
+
+  # キャッシュを使用しない場合
+  start_time_no_cache = time.time()
+  result_no_cache = perform_heavy_query(df).collect()
+  end_time_no_cache = time.time()
+  print(f"Execution time without cache: {end_time_no_cache - start_time_no_cache:.2f} seconds")
+
+  # キャッシュを使用した場合
+  df.cache()  # キャッシュを設定
+  df.count()  # アクションを実行し、キャッシュをトリガー/マテリアライズ
+  start_time_with_cache = time.time()
+  result_with_cache = perform_heavy_query(df).collect()
+  end_time_with_cache = time.time()
+  print(f"Execution time with cache: {end_time_with_cache - start_time_with_cache:.2f} seconds")
+
+  spark.stop() # SparkSessionの停止
+  
+  """
+  Execution time without cache: 13.90 seconds
+  Execution time with cache: 4.27 seconds
+  """
+  ```
+- persist()の利用による速度改善の比較
+  - persistはStorageLevelを介してデータのcache方法を制御可能（MEMORY_ONLY推奨）
+    - MEMORY_ONLY  
+      -> データはオブジェクトとしてメモリにのみ保存
+    - MEMORY_ONLY_SER  
+      -> データはシリアライズされメモリにのみ保存（データ使用時にデシリアライズが必要）
+    - MEMORY_AND_DISK  
+      -> データはオブジェクトとしてメモリに保存されるが、メモリが足りない場合の残りはシリアライズされてディスクに保存
+    - DISK_ONLY  
+      -> データはシリアライズされてディスクに保存
+    - OFF_HEAP  
+      -> データはオフヒープに保存
+  ```python
+  from pyspark.sql import SparkSession
+  from pyspark import StorageLevel
+  import time
+
+  spark = SparkSession.builder.getOrCreate()
+
+  # サンプルデータの生成
+  data = [(i, i * 2, i * 3) for i in range(1, 1000001)] # 100万行のデータ
+  columns = ["col1", "col2", "col3"]
+  df = spark.createDataFrame(data, columns)
+
+  # 重い計算を模倣するクエリ（集計処理）
+  def perform_heavy_query(df):
+      return df.groupBy("col1").agg({"col2": "sum", "col3": "max"})
+
+  # persistを使用しない場合
+  start_time_no_persist = time.time()
+  result_no_persist = perform_heavy_query(df).collect()
+  end_time_no_persist = time.time()
+  print(f"Execution time without persist: {end_time_no_persist - start_time_no_persist:.2f} seconds")
+
+  # persistを使用した場合
+  df.persist(StorageLevel.DISK_ONLY)  # persistを設定
+  df.count()  # アクションを実行し、persistをトリガー/マテリアライズ
+  start_time_with_persist = time.time()
+  result_with_persist = perform_heavy_query(df).collect()
+  end_time_with_persist = time.time()
+  print(f"Execution time with persist: {end_time_with_persist - start_time_with_persist:.2f} seconds")
+  
+  df.unpersist() # ストレージの解除
+  spark.stop() # SparkSessionの停止
+  
+  """
+  Execution time without persist: 14.29 seconds
+  Execution time with persist: 3.68 seconds
+  """
+  ```
+- cache()やpersist()の使い分け
+  - 行うべきケース
+    - 機械学習の学習に使われるDataFrame
+    - ETLで頻繁に行われる変換のためによくアクセスされるDataFrame
+  - 行わないほうが良いケース
+    - メモリに収まりきらない大きさのDataFrame
+    - 使用頻度の低いDataFrame
+### Spark UIの確認
+- Windowsでの確認方法
+  1. %SPARK_HOME%/conf 内の spark-defaluts.conf に以下の設定を追記
+    ```text
+    spark.eventLog.enabled              true
+    spark.eventLog.dir                  file:/C:/{log_path}    # {log_path}はログを保存する任意のパス
+    spark.history.ui.port               18080                  # 過去のログをSpark UIで確認する際のポート
+    spark.history.fs.logDirectory       file:/C:/{log_path}    # 過去のログを読み込むパス
+    spark.history.retainedApplications  10                     # ログの保存数
+    ```
+  2. `cd %SPARK_HOME%\bin` でbinディレクトリに移動し、`spark-class org.apache.spark.deploy.history.HistoryServer` を実行
+      - Linuxの場合は、`cd %SPARK_HOME%\sbin` でsbinディレクトリに移動し、`start-history-server.sh` を実行
+- 確認可能な項目
+  - Jobs  
+    -> 各JobのDurationを確認でき、実行速度のボトルネックを調査可能
+  - Stages  
+    -> 各StageのDurationを確認でき、実行速度のボトルネックを調査可能
+  - Storage  
+    -> CacheされたすべてのテーブルやDataFrameの情報を確認可能
+  - Environment  
+    -> SparkのConfigに関して、GUI上で詳細に確認可能
+  - Executors  
+    -> 各Executorのメトリクスについて確認可能
+  - SQL/DataFrame  
+    -> クエリがいつどのJobで実行されたかを確認可能
 
 ## 8章
-###
+### 構造化ストリーミング
+- https://spark.apache.org/docs/3.5.3/structured-streaming-programming-guide.html
+- 構造化ストリーミングがサポートされているのは、インインクリメンタルに実行できるDataFrameオペレーションのみ
+  - ステートレス・オペレーション
+    - 該当オペレーション
+      - 投影オペレーション：select, explode, map, flatmap, etc
+      - 選択オペレーション：filter, where, etc
+    - サポートモード：append, update, output
+      - completeモードがサポートされていないのは、増加し続ける結果データの保持コストが高いため
+  - ステートフル・オペレーション
+    - 常に DataFrame.groupBy() or DataFrame.groupByKey() を使用する必要がある
+    - ウィンドウによる集計  
+      -> `streamDF.groupBy("{column_name}", window("{timestamp}", "10 minutes", "5 minutes")).count()`
+    - watermarkによる遅延保障：指定時間内のデータは削除しない  
+      -> `streamDF.withWatermark("{timestamp}", "10 minutes")groupBy("{column_name}", window("{timestamp}", "10 minutes", "5 minutes")).count()`
+- ストリームデータの結合
+  - Stream-Static：全ストリームデータに対して結合可能、1つのストリームデータを静的情報でエンリッチ化する際に使用
+    - inner-join, left-join (StreamDFが左), right-join (StreamDFが右) をサポート
+  - Stream-Stream：両方のデータソースがリアルタイムに変化する際に使用
+    - inner-join, outer-join ともにサポート
+- sessionizedStreamとセッションウィンドウ
+  - 従来のリアルタイム処理では、flatMapGroupWithState()でカスタムのセッションウィンドウロジックが実装されていた
+    - 本方法は以下のような課題がある
+      - 手動でのステート管理
+      - 組み込み集計関数の非対応
+      - PySparkでの使用不可
+  - session_window()により、動的なウィンドウサイズを持つセッションウィンドウを簡単に作成できるようになった
+    - 新規イベントが発生するとウィンドウが開始
+    - 状態管理の複雑さが低減
+    - 集計処理の実装が簡素化
+    - Pythonを含む複数言語で使用可能
+- ストリーミングクエリを実行するSparkクラスタのパフォーマンスチューニング
+  - ストリーミングクエリを実行するクラスタは常時稼働するため、過不足のないリソースのプロビジョニングが必要
+  - Shuffle partitionをバッチクエリの時よりも小さい値に設定し、分割のオーバーヘッドを低減する
+  - 急増するデータによる影響を小さくするために、ソースレート制限を設ける
+  - 複数のストリーミングクエリを同一のSparkContextもしくはSparkSessionで実行し、クエリ間のリソース共有を可能にする
 
 ## 9章
 ###
@@ -674,3 +921,6 @@ t_c.show()
 ## 参照
 - https://waltyou.github.io/Learning-Spark-0/
 - https://www.analyticsvidhya.com/blog/2022/07/spark-sql-for-relational-databases/
+- https://www.modb.pro/db/70339
+- https://towardsdatascience.com/6-recommendations-for-optimizing-a-spark-job-5899ec269b4b
+- https://medium.com/@arjun289singh/a-comprehensive-overview-of-apache-spark-unleashing-the-power-of-distributed-computing-31aa0d1643fc
