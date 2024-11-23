@@ -681,7 +681,7 @@ t_c.show()
   .filter($"firstName".startsWith("D")) // DSL
   .count()
   ```
-  ![DSLとLambda](DSL_and_Lambda.png, " ")
+  ![DSLとLambda](DSL_and_Lambda.png " ")
   ```Scala
   // DSLのみの場合 (効率良い)
   personDS
@@ -742,7 +742,7 @@ conf.set({key}: {value})
 - Partition：ディスク上の連続したデータを、設定可能で読み取り可能な塊やブロックのサブセットに配置する方法
 - Spark jobの各Taskは個別のPartitionのデータを処理
 - リソース利用を最適化し、並列性を最大化するには、Executor上のコア数とPartitionの数が同じ状態が理想
-  ![並列性を最大化する状態](maximize_parallel.png, "並列性を最大化する状態")
+  ![並列性を最大化する状態](maximize_parallel.png "並列性を最大化する状態")
 - SparkのTaskはディスクからメモリに読み込まれたPartitionとしてデータを処理
 - SparkのPartitionの最大サイズのデフォルト値は128MB
 - ファイルサイズの小さいPartitionが多いと、ディスクI/Oが多くなり、パフォーマンスに影響を及ぼす
