@@ -1,8 +1,8 @@
 +++
 title = 'Databricks Certified Machine Learning Associate 試験勉強まとめ'
 subtitle = ""
-date = 2024-mm-dd
-lastmod = 2024-mm-dd
+date = 2024-12-10
+lastmod = 2024-12-10
 draft = true
 KaTex = false
 author = "Tuuutti"
