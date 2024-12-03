@@ -30,6 +30,7 @@ rssFullText = false
 ## 関連リンク
 - [Apache Spark徹底入門](https://www.shoeisha.co.jp/book/detail/9784798186788)
 - [GitHub](https://github.com/databricks/LearningSparkV2)
+- [GitHub日本語](https://github.com/taka-yayoi/SparkSample)
 
 ## 動作検証バージョン（2024/11時点）
 - Python : 3.11 (3.13では実施していたところ、以下のエラーが発生)
@@ -710,7 +711,7 @@ pprint(conf.getAll())
 conf.set({key}: {value})
 ```
 ### 動的リソース割り当て
-- 動的リソース割り当てを有効にすると、大規模なワークロードの需要の増減に応じて、Spark Driverがコンピュートリソースを要求。使用していないときはExecutorを解放し、必要な時に新しいExecutorを取得。
+- 動的リソース割り当てを有効にすると、大規模なワークロードの需要の増減に応じて、Spark Driverがコンピュートリソースを要求使用していないときはExecutorを解放し、必要な時に新しいExecutorを取得
 - 動的リソース割り当ては、以下のような処理データ量が一定ではないケースで役立つ
   - データフロー量が不均一なストリーミング
   - 大量のSQLクエリのオンデマンド処理
@@ -907,16 +908,610 @@ conf.set({key}: {value})
   - 複数のストリーミングクエリを同一のSparkContextもしくはSparkSessionで実行し、クエリ間のリソース共有を可能にする
 
 ## 9章
-###
+### ストレージソリューションに望まれる特性
+- スケーラビリティとパフォーマンス
+- ACIDトランザクション
+- 多様なデータフォーマットへの対応
+- 多様なワークロードへの対応
+### SQLワークロードのカテゴリ
+- OLTP (On-Line Transaction Process)：リレーショナルデータベースと相性が良い
+  - 高並行性
+  - 低レイテンシ
+  - 1度に数レコードを処理
+- OLAP (On-Line Analytics Process)：カラムナデータベースと相性が良い
+  - 多数のレコード
+  - 高スループット
+  - バッチ処理や大規模クエリ処理が中心
+### レイクハウスストレージの特徴
+- 並列ワークロード下でのACIDトランザクションを保証
+- スキーマの強制によるデータ不整合の回避
+- 多様なデータ形式のサポート
+- 多様なワークロードに対応
+- upsertとdeleteの同時実行が可能
+- データの変更履歴を監査
+### Delta Lakeの利点
+- バッチジョブとストリーミングジョブの両方から同じテーブルへの書き込みが可能
+- 複数のストリーミングジョブが同じテーブルにデータを追加することが可能
+- 同時書き込みでもACIDを保証
+### Delta Lakeへのデータのロード
+- バッチデータ  
+  `spark.read.format("parquet").load({source_path}).write.format("delta").mode("append").option("mergeSchema", "true").save({delta_path})`
+- ストリーミングデータ  
+  `stream_df.writeStream.format("delta").option("checkpointLocation", {location_path}).trigger(processingTime="10 seconds").start({delta_path})`
+### Deltaテーブルのmerge
+`delta_table_a.alias("a").merge(delta_table_b.alias("b"), "a.id=b.id").whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()`
+### Deltaテーブルの変更履歴の確認とタイムトラベル
+- 変更履歴の確認  
+  `delta_table.history(3).show()`
+- タイムトラベル  
+  `spark.read.format("delta").option("timestampAsOf", "2024-01-01").load({delta_path})`
+
+  `spark.read.format("delta").option("versionAsOf", "7").load({delta_path})`
+### Deltaテーブルのファイル構成の最適化
+- ビンパッキング  
+  `delta_table.optimize().executeCompaction()`
+- Z-オーダーリング  
+  `delta_table.optimize().executeZOrderBy({column})`
 
 ## 10章
-###
+### Sparkを用いた機械学習
+- sparkにはspark.mllibとspark.mlの2つの機械学習パッケージがある
+  - spark.mllib：RDD APIに基づき、Spark2.0以降メンテナンスモード
+  - spark.ml：DataFrameに基づく新しいAPI
+- spark.mlは分散フレームワークのため、scikit-learnのような単一ノードフレームワークと異なり、大規模なデータセットを用いたモデルの構築が可能
+- コンポーネント
+  - トランスフォーマ
+    - データフレームを入力として受け取り、特徴量の変換や追加を行う
+    - transformer.transform()の戻り値が、特徴量エンジニアリング後のデータフレーム
+  - エスティメータ
+    - データからパラメータを学習し、学習済みモデル（トランスフォーマ）を返す
+    - estimator.fit()の戻り値がトランスフォーマ
+  - パイプライン
+    - トランスフォーマとエスティメータの一連の流れを1つのフローとして管理
+    - .fit() -> transformer -> .transform() -> DataFrame -> .fit() ...
+### 機械学習フローの実装
+- データセットの分割
+  - ランダム分割
+    ```python
+    df.randomSplit([0.8, 0.2], seed=42)
+    ```
+- 特徴量の作成
+  - 対数変換：右に裾野が広いデータを正規分布に近づける変換
+    ```python
+    from pyspark.sql.functions import log, exp
 
+    df = df.withColumn("price_log", log(col("price")))
+    
+    # 予測結果は指数変換で元のスケールに戻す
+    df_pred = df_pred.withColumn("price_pred", exp(col("price_log_pred")))
+    ```
+  - VectorAssembler：全特徴を1つのベクトルにまとめる
+    ```python
+    from pyspark.ml.feature import VectorAssembler
+
+    va = VectorAssembler(inputCols=["{col_1}", ..., "{col_N}"], outputCol="features")
+    va_df = va.transform(df)
+    ```
+  - One-Hot Encoding：SparseVectorによる効率的なエンコーディング
+    ```python
+    categorical_cols = [field for (field, data_type) in train_df.dtypes if data_type == "string"]
+    numerical_cols = [field for (field, data_type) in train_df.dtypes if ((data_type != "string") & (field != "price"))]
+    index_output_cols = [x+"_index" for x in categorical_cols]
+    ohe_output_cols = [x+"_OHE" for x in categorical_cols]
+
+    si = StringIndexer(inputCols=categorical_cols, outputCols=index_output_cols, handleInvalid="skip")
+    ohe = OneHotEncoder(inputCols=index_output_cols, outputCols=ohe_output_cols)
+    assembler_input_cols = ohe_output_cols + numerical_cols
+    va = VectorAssembler(inputCols=assembler_input_cols, outputCol="features")
+
+    # 予測の実行
+    lr = LinearRegression(labelCol="price", featuresCol="features")
+    pipeline = Pipeline(stages=[si, ohe, va, lr])
+    pipeline_model = pipeline.fit(train_df)
+    pred_df = pipeline_model.transform(test_df)
+    pred_df.show(3)
+    ```
+    - StringIndexer：文字列のカテゴリデータを数値インデックスに変換
+      - カテゴリは出現頻度の降順で並べられ、インデックスが割り当てられる
+      - 未知のカテゴリがデータに含まれる場合の挙動は、handleInvalidパラメータで指定可能
+        - "error"（デフォルト）：エラーを発生
+        - "skip"：無効なエントリをスキップ
+        - "keep"：新しいインデックスを割り当て
+      ```python
+      from pyspark.ml.feature import StringIndexer
+
+      data = spark.createDataFrame([
+          (0, "cat"),
+          (1, "dog"),
+          (2, "mouse"),
+          (3, "cat"),
+          (4, "dog"),
+          (5, "cat")
+      ], ["id", "category"])
+
+      indexer = StringIndexer(inputCol="category", outputCol="categoryIndex")
+      model = indexer.fit(data)
+      indexed = model.transform(data)
+      indexed.show()
+
+      """
+      +---+--------+-------------+
+      | id|category|categoryIndex|
+      +---+--------+-------------+
+      |  0|     cat|          0.0|
+      |  1|     dog|          1.0|
+      |  2|   mouse|          2.0|
+      |  3|     cat|          0.0|
+      |  4|     dog|          1.0|
+      |  5|     cat|          0.0|
+      +---+--------+-------------+
+      """
+
+      new_data = spark.createDataFrame([
+          (0, "dog"),
+          (1, "rabbit"),
+          (2, "horse")
+      ], ["id", "category"])
+
+      indexer_skip = StringIndexer(inputCol="category", outputCol="categoryIndex", handleInvalid="skip")
+      indexer_keep = StringIndexer(inputCol="category", outputCol="categoryIndex", handleInvalid="keep")
+      indexer_error = StringIndexer(inputCol="category", outputCol="categoryIndex", handleInvalid="error")
+      indexers = [indexer_skip, indexer_keep, indexer_error]
+
+      for indexer in indexers:
+          model = indexer.fit(data)
+          indexed = model.transform(new_data)
+          indexed.show()
+      
+      """
+      handleInvalid="skip"
+      +---+--------+-------------+
+      | id|category|categoryIndex|
+      +---+--------+-------------+
+      |  0|     dog|          1.0|
+      +---+--------+-------------+
+
+      handleInvalid="keep"
+      +---+--------+-------------+
+      | id|category|categoryIndex|
+      +---+--------+-------------+
+      |  0|     dog|          1.0|
+      |  1|  rabbit|          3.0|
+      |  2|   horse|          3.0|
+      +---+--------+-------------+
+
+      handleInvalid="error"
+      ERROR Executor: Exception in task 13.0 in stage 19.0 (TID 161)
+      """
+      ```
+    - OneHotEncoder：カテゴリデータをワンホットエンコーディング形式に変換
+      - 出力はスパースベクトル
+      - 多重共線性を防ぐために、出力ベクトルの長さは「カテゴリ数-1」
+      ```python
+      from pyspark.ml.feature import StringIndexer, OneHotEncoder
+
+      data = spark.createDataFrame([
+          (0, "cat"),
+          (1, "dog"),
+          (2, "mouse"),
+          (3, "cat"),
+          (4, "dog"),
+          (5, "cat")
+      ], ["id", "category"])
+
+      indexer = StringIndexer(inputCol="category", outputCol="categoryIndex")
+      indexed_data = indexer.fit(data).transform(data)
+      encoder = OneHotEncoder(inputCol="categoryIndex", outputCol="categoryVec")
+      encoded_data = encoder.fit(indexed_data).transform(indexed_data)
+      encoded_data.show()
+
+      """
+      +---+--------+-------------+-------------+
+      | id|category|categoryIndex| categoryVec |
+      +---+--------+-------------+-------------+
+      |  0|     cat|          0.0| (2,[0],[1.0])|
+      |  1|     dog|          1.0| (2,[1],[1.0])|
+      |  2|   mouse|          2.0|     (2,[],[])|
+      |  3|     cat|          0.0| (2,[0],[1.0])|
+      |  4|     dog|          1.0| (2,[1],[1.0])|
+      |  5|     cat|          0.0| (2,[0],[1.0])|
+      +---+--------+-------------+-------------+
+      """
+      ```
+  - RFormula：自動的にStringIndexerとOneHotEncoderを実施
+    - ツリー系のメソッドの場合、ワンホットエンコーディングを使用すると、むしろ精度が悪化するため注意が必要
+    ```python
+    from pyspark.ml.feature import RFormula
+
+    r_formula = RFormula(formula="price ~.", 
+                          featureCol="features", 
+                          labelCol="price", 
+                          handleInvalid="skip")
+
+    # 予測の実行
+    pipeline = Pipeline(stages=[r_formula, lr])
+    pipeline_model = pipeline.fit(train_df)
+    pred_df = pipeline_model.transform(test_df)
+    pred_df.show(3)
+    ```
+- モデル作成
+  - 線形回帰
+    ```python
+    from pyspark.ml.regression import LinearRegression
+
+    lr = LinearRegression(featuresCol="features", labelCol="price", regParam=0.01)
+    model = lr.fit(va_train_df)
+    print(f"{model.coefficients=}", f"{model.intercept=}")
+    ```
+  - ランダムフォレスト
+    - ブートストラップサンプリングにより、各決定木は異なる特徴を学習し、モデルの多様性が向上し、汎化性が高くなる
+      - サンプリング時に元のデータの約63.2%程度が使われる（1つのデータ点が選ばれない確率が (1−1/N)^N = 1/e であるため）
+    - 分岐の列選択により、各決定木間の相関を小さくし、アンサンブルの性能を向上させる
+    ```python
+    from pyspark.ml.regression import RandomForestRegressor
+
+    # ランダムフォレストによる予測
+    rfr = RandomForestRegressor(labelCol="price")
+
+    # 使用カラムの選定
+    categorical_cols = [field for (field, data_type) in train_df.dtypes if data_type == "string"]
+    numerical_cols = [field for (field, data_type) in train_df.dtypes if ((data_type != "string") & (field != "price"))]
+    index_output_cols = [x+"_index" for x in categorical_cols]
+
+    # データ前処理
+    si = StringIndexer(inputCols=categorical_cols, outputCols=index_output_cols, handleInvalid="skip")
+    assembler_input_cols = index_output_cols + numerical_cols
+    va = VectorAssembler(inputCols=assembler_input_cols, outputCol="features")
+
+    # 学習と予測の実行
+    pipeline = Pipeline(stages=[si, va, rfr])
+    pipeline_model = pipeline.fit(train_df)
+    pred_df = pipeline_model.transform(test_df)
+
+    # 予測精度の評価
+    re = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="rmse")
+    rmse = re.evaluate(pred_df)
+    print(rmse)
+
+    # 分岐の可視化
+    model = pipeline_model.stages[-1]
+    # print(model.toDebugString)
+
+    # 特徴量重要度の可視化
+    feature_importance = pd.DataFrame(
+        list(zip(va.getInputCols(), model.featureImportances)),
+        columns=["feature", "importance"]
+    )
+    feature_importance.sort_values(by="importance", ascending=False, inplace=True)
+    print(feature_importance.head(5))
+    ```
+- 処理のパイプライン化
+  - パイプラインAPIの利点は、どのステージが Estimator/Transformer かを自動的に決定するため、各ステージの .fit()/.transform() を指定する必要がなくなる
+    ```python
+    from pyspark.ml import Pipeline
+
+    pipeline = Pipeline(stages=[va, lr])
+    pipeline_model = pipeline.fit(train_df)
+    ```
+- 予測の実行
+  ```python
+  pred_df = pipeline_model.transform(test_df)
+  ```
+- モデルの読み書き
+  - 通常、保存したモデルを読み込むには、モデルの型を指定する必要がある
+  - パイプラインモデルを作成することで、すべてのモデルをPipelineModelで読み込み可能となり、モデルの型指定が不要となる
+  ```python
+  # 書き込み
+  pipeline_model.write().overwrite().save("{save_path}")
+
+  # 読み込み
+  from pyspark.ml import PipelineModel
+  model = PipelineModel.load("{save_path}")
+  ```
+- 交差検証：最適なハイパーパラメータを選択したり、アーリーストッピングのタイミングを判断するために使用
+  - 実行速度を最適化するための改善策
+    - 並列トレーニング（データの大小に関わらず効果的）
+    - 交差検証をパイプラインに組み込む（データが大きいときに効果的）
+  ```python
+  from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
+
+  spark.sparkContext.setLogLevel("ERROR")     # WARN を非表示に変更
+
+  param_grid = ParamGridBuilder().addGrid(rfr.maxDepth, [5, 10]).addGrid(rfr.numTrees, [100, 200]).build()
+  cv = CrossValidator(estimator=pipeline, evaluator=re, estimatorParamMaps=param_grid, numFolds=3, seed=42)
+
+  # 実行速度最適化前
+  start = time.time()
+  cv_model = cv.fit(train_df)
+  # pprint(list(zip(cv_model.getEstimatorParamMaps(), cv_model.avgMetrics)))
+  elapse_before = time.time() - start
+  print(f"{elapse_before=}")
+
+  # 実行速度最適化後（並列トレーニング）
+  start = time.time()
+  cv_model = cv.setParallelism(4).fit(train_df)
+  # pprint(list(zip(cv_model.getEstimatorParamMaps(), cv_model.avgMetrics)))
+  elapse_parallel = time.time() - start
+  print(f"{elapse_parallel=}")
+
+  # 実行速度最適化後（交差検証をパイプラインに組み込む）
+  start = time.time()
+  cv = CrossValidator(estimator=rfr, evaluator=re, estimatorParamMaps=param_grid, numFolds=3, parallelism=4, seed=42)
+  pipeline = Pipeline(stages=[si, va, cv])
+  pipeline_model = pipeline.fit(train_df)
+  # pprint(list(zip(cv.getEstimatorParamMaps(), pipeline_model.stages[-1].avgMetrics)))
+  elapse_pipeline = time.time() - start
+  print(f"{elapse_pipeline=}")
+
+  """
+  elapse_before=16.84671664237976
+  elapse_parallel=8.8700430393219
+  elapse_pipeline=8.542184829711914
+  """
+  ```
 ## 11章
-###
+### MLflowの構成
+- トラッキング：パラメータ、メトリクス、コードバージョン、モデル、アーティファクトを記録
+- プロジェクト：依存関係をパッケージ化し、プロジェクト管理を支援
+- モデル：異なる実行環境にデプロイするためのモデルをパッケージ化
+- レジストリ：モデルのリネージ、モデルのバージョン、ステージ遷移、アノテーションを記録
+### トラッキング
+- Experimentの中に、複数のRunを集約
+```python
+import mlflow
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import RegressionEvaluator
 
+spark = SparkSession.builder.getOrCreate()
+
+# データセットの読込み
+file_path = ""
+df = spark.read.format("csv").option("header", "true").load(f"{file_path}")
+df_transformed = (df.withColumn("price", df["price"].cast(IntegerType()))
+                    .withColumn("area", df["area"].cast(IntegerType()))
+                    )
+
+# データセットの分割
+train_df, test_df = df_transformed.randomSplit([0.8, 0.2], seed=42)
+print(train_df.count(), test_df.count())
+
+# 特徴量の作成
+input_cols = ["area"]
+output_col = "features"
+va = VectorAssembler(inputCols=input_cols, outputCol=output_col)
+va_train_df = va.transform(train_df)
+va_train_df.select("area", "features", "price").show(3)
+
+# 線形回帰
+lr = LinearRegression(featuresCol="features", labelCol="price", regParam=0.01)
+model = lr.fit(va_train_df)
+pipeline = Pipeline(stages=[va, lr])
+pipeline_model = pipeline.fit(train_df)
+pred_df = pipeline_model.transform(test_df)
+save_filename = "pred_df.parquet"
+pred_df.write.mode("overwrite").parquet(save_filename)
+
+# 予測精度の評価
+re = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="rmse")
+rmse = re.evaluate(pred_df)
+
+# MLflow
+mlflow.start_run(run_name="mlflow-test")
+run = mlflow.active_run()
+print(f"Active run_id: {run.info.run_id}")
+mlflow.log_param("input_cols", input_cols)
+mlflow.log_param("output_col", output_col)
+mlflow.spark.log_model(pipeline_model, "model")
+mlflow.log_metric("rmse", rmse)
+mlflow.log_artifact(f"{save_filename}")
+mlflow.end_run()
+print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000")
+```
+![MLflowのUI](mlflow_ui.png "MLflowのUI")
+![Artifactsの中身](artifacts.png "Artifactsの中身")
+### MLflowに登録したモデルを用いた推論
+- バッチ
+  - MLlibはオンラインアップデートやウォームスタートをサポートしていないため、最新データをモデルにとりこむには、モデル全体を再学習する必要があり、再学習の指針としては以下の2つがある
+    - 定期的なモデル再学習の実行
+    - ドリフトを監視し再学習タイミングを特定
+  ```python
+  import mlflow
+  from pyspark.sql import SparkSession
+  from pyspark.sql.types import *
+
+  spark = SparkSession.builder.getOrCreate()
+  spark.sparkContext.setLogLevel("ERROR")     # WARN を非表示に変更
+
+  df = spark.read.format("csv").option("header", "true").load("C:/Users/{user_name}/my-env/sandbox/LearningSparkV2-master/chapter11/py/data/Housing.csv")
+  df_transformed = (df.withColumn("price", df["price"].cast(IntegerType()))
+                      .withColumn("area", df["area"].cast(IntegerType()))
+                      )
+
+  # mlflow.spark.load_modelは、Spark環境が必要な処理
+  # この処理を実行する前に、SparkSessionの初期化が必要
+  run_id = "f2218681b0ab4d9aaa714222455c7430"
+  pipeline_model = mlflow.spark.load_model(f"runs:/{run_id}/model")
+  pred_df = pipeline_model.transform(df_transformed)
+  pred_df.show(3)
+  ```
+- ストリーミング
+  - ストリーミング予測の場合は、入力データをストリーミング読み込みに変更するだけで、推論パイプラインに対する変更は不要
+  - Sparkではドライバ・ワーカー間でオーバーヘッドが発生するため、低レイテンシが必要な予測の場合は、モデルをSparkからエクスポートする必要がある
+    - エクスポートの際は、ONNX（Open Neural Network Exchange）フォーマットが便利
+### 非MLlibモデルでのSparkを活用した分散型ハイパーパラメータチューニング
+- Joblib
+  - データのコピーをすべてのワーカーにブロードキャストし、各ワーカーは異なるハイパーパラメータで独自のモデルを作成
+  - 1つのモデルとすべてのデータが1台のマシンに収まらなければならないという制約あり
+  - Spark以外のバックエンドもサポートしており、各バックエンドの特徴は以下の通り
+    - loky（デフォルト）
+      - プロセスベースの並列化
+      - 各プロセスが独立したPythonインタープリタを持つため、GIL（Global Interpreter Lock）の影響を受けない
+      - メモリ共有が制限されるため、大規模なデータを扱う場合にはメモリ消費が増加する可能性がある
+    - threading
+      - スレッドベースの並列化
+      - メモリ消費が低く、データのコピーが不要
+      - GILの影響を受けるため、CPUバウンドなタスクではスケーラビリティが制限される
+    - dask
+      - 分散システムや大規模なデータセットに最適化
+      - 並列処理の拡張性が高く、クラスター環境でも動作可能
+      - データの分散管理やタスクスケジューリングが柔軟
+    - spark（joblib-sparkが必要）
+      - Apache Sparkを利用した分散処理
+      - クラスタ環境での大規模データ処理に適している
+      - Sparkのエコシステムと統合可能
+  ```python
+  import time
+  import joblib
+  import pandas as pd
+  from sklearn.ensemble import RandomForestRegressor
+  from sklearn.utils import parallel_backend
+  from sklearn.model_selection import train_test_split, GridSearchCV
+  from joblibspark import register_spark
+  from pyspark import SparkContext
+
+  df = pd.read_csv("LearningSparkV2-master/chapter11/py/data/Housing.csv")
+  df_encoded = pd.get_dummies(df, columns=[
+      "mainroad", "guestroom", "basement", "hotwaterheating",
+      "airconditioning", "prefarea", "furnishingstatus"
+  ])
+  X = df_encoded.drop(columns=["price"])
+  y = df_encoded["price"]
+
+  X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+  reg = RandomForestRegressor(random_state=42)
+  param_grid = {"max_depth": [2, 5, 10], "n_estimators": [20, 50, 100]}
+  gscv = GridSearchCV(reg, param_grid, cv=3)
+
+  # 順次実行
+  start = time.time()
+  gscv.fit(X_train, y_train)
+  elapse_sequential = time.time() - start
+  print(f"{elapse_sequential=}")
+
+  # 分散実行
+  register_spark()
+  sc = SparkContext.getOrCreate()
+  sc.addPyFile("dependencies.zip")  # 依存関係を追加
+  start = time.time()
+  # # BackendとしてSparkを使用できない場合は、"loky", "threading"も指定可能
+  with joblib.parallel_backend("spark", n_jobs=3):
+      gscv.fit(X_train, y_train)
+  elapse_parallel = time.time() - start
+  print(f"{elapse_parallel=}")
+
+  ```
+- Hyperopt
+  - スケールアウトの方法は以下の2つがある
+    - 分散トレーニングアルゴリズム（MLlib）を使用した単一マシン上でHyperoptを使用
+      ```python
+      from pyspark.sql import SparkSession
+      from pyspark.ml.regression import RandomForestRegressor
+      from pyspark.ml import Pipeline
+      from pyspark.ml.feature import VectorAssembler
+      from hyperopt import fmin, tpe, hp, Trials
+      from hyperopt import STATUS_OK
+
+      spark = SparkSession.builder.getOrCreate()
+
+      # データの読み込み
+      data = spark.read.csv("path/to/your/data.csv", header=True, inferSchema=True)
+      feature_columns = ['feature1', 'feature2', 'feature3']  # 特徴量のカラム名
+      assembler = VectorAssembler(inputCols=feature_columns, outputCol='features')
+      data = assembler.transform(data)
+
+      # ハイパーパラメータの最適化のための目的関数
+      def objective(params):
+          rf = RandomForestRegressor(numTrees=int(params['numTrees']),
+                                      maxDepth=int(params['maxDepth']),
+                                      seed=42)
+          model = rf.fit(data)
+          predictions = model.transform(data)
+          rmse = predictions.selectExpr("sqrt(mean((label - prediction) * (label - prediction))) as rmse").first().rmse
+          return {'loss': rmse, 'status': STATUS_OK}
+
+      # ハイパーパラメータの探索空間
+      space = {
+          'numTrees': hp.choice('numTrees', [10, 20, 50, 100]),
+          'maxDepth': hp.choice('maxDepth', [5, 10, 15, 20])
+      }
+
+      # 最適化の実行
+      trials = Trials()
+      best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=50, trials=trials)
+      print("最適なハイパーパラメータ:", best)
+      ```
+    - SparkTrialsクラスを使用した分散Hyperoptの使用
+      ```python
+      from pyspark.sql import SparkSession
+      from pyspark import SparkContext
+      from hyperopt import fmin, tpe, hp, SparkTrials
+      from sklearn.ensemble import RandomForestRegressor
+      from sklearn.metrics import mean_squared_error
+      import numpy as np
+
+      spark = SparkSession.builder.getOrCreate()
+      sc = SparkContext.getOrCreate()
+
+      data = spark.read.csv("path/to/your/data.csv", header=True, inferSchema=True).toPandas()
+      X = data[['feature1', 'feature2', 'feature3']]  # 特徴量のカラム名
+      y = data['label']  # ラベルのカラム名
+
+      # ハイパーパラメータの最適化のための目的関数
+      def objective(params):
+          rf = RandomForestRegressor(n_estimators=int(params['n_estimators']),
+                                      max_depth=int(params['max_depth']),
+                                      random_state=42)
+          rf.fit(X, y)
+          predictions = rf.predict(X)
+          rmse = np.sqrt(mean_squared_error(y, predictions))
+          return rmse
+
+      # ハイパーパラメータの探索空間
+      space = {
+          'n_estimators': hp.choice('n_estimators', [10, 50, 100, 200]),
+          'max_depth': hp.choice('max_depth', [5, 10, 15, None])
+      }
+
+      # SparkTrialsを使用して最適化の実行
+      trials = SparkTrials(parallelism=4)  # 並列処理の数を指定
+      best = fmin(fn=objective, space=space, algo=tpe.suggest, max_evals=50, trials=trials)
+      print("最適なハイパーパラメータ:", best)
+      ```
 ## 12章
-### 
+### DataFrameの種類
+- Pandas: pandas.DataFrame
+  - メモリ内で動作し、データの操作が高速
+  - 小規模データセットに適している
+  ```python
+  import pandas as pd
+  df_pandas = pd.read_csv('data.csv')
+  ```
+- Pandas API on Spark: pyspark.pandas.DataFrame
+  - PandasのAPIがSpark上で利用可能
+  - 大規模データセットに適しており、分散処理が可能
+  - Pandasの機能を活用しつつ、Sparkのスケーラビリティを持つ
+  ```python
+  import pyspark.pandas as ps
+  df_spark_pandas = ps.read_csv('data.csv')
+  ```
+- Spark SQL: pyspark.sql.DataFrame
+  - Sparkの分散データフレーム
+  - SQLクエリを使用してデータを操作
+  - 大規模データ処理に最適で、クラスター全体でデータを処理
+  ```python
+  from pyspark.sql import SparkSession
+  spark = SparkSession.builder.getOrCreate()
+  df_spark_sql = spark.read.csv('data.csv', header=True, inferSchema=True)
+  ```
+### 関数の使い分け
+- PySpark
+- Pandas UDF
+- Pandas API
 
 ## 参照
 - https://waltyou.github.io/Learning-Spark-0/

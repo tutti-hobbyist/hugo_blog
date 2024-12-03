@@ -35,6 +35,7 @@ rssFullText = false
 ## Udemy
 - [Databricks Certified Machine Learning Associate Exam Guide](https://www.udemy.com/course/databricks-machine-learning/)
 - [Databricks Certified Machine Learning Associate: 4 Mock Exam](https://www.udemy.com/course/databricks-certified-machine-learning-associate-5-mock-test/)
+- [Databricks Machine Learning Associate Practice Tests 2024](https://www.udemy.com/course/databricks-machine-learning-associate-practice-tests-2024)
 
 ## その他
 - [scalable-machine-learning-with-apache-spark-japanese](https://github.com/skotani-db/scalable-machine-learning-with-apache-spark-japanese)
