@@ -2,7 +2,7 @@
 title = 'Apache Spark徹底入門'
 subtitle = ""
 date = 2024-11-12
-lastmod = 2024-12-03
+lastmod = 2024-12-07
 draft = false
 KaTex = false
 author = "Tuuutti"
@@ -25,7 +25,6 @@ fontawesome = true
 linkToMarkdown = true
 rssFullText = false
 +++
-
 <!--more-->
 ## 関連リンク
 - [Apache Spark徹底入門](https://www.shoeisha.co.jp/book/detail/9784798186788)
@@ -1509,9 +1508,76 @@ print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000"
   df_spark_sql = spark.read.csv('data.csv', header=True, inferSchema=True)
   ```
 ### 関数の使い分け
+- PySparkのDataFrameに対して処理を行いたい場合、以下のようにPySpark標準の処理、Pandas UDFを用いた処理、Pandas function APIを用いた処理がある
+  - ただし、分散型のPandasオペレーションよりもネイティブのSpark関数を用いた方が高速
+  - Sparkを使えない場合のフォールバックとしてのみ、分散Pandas関数を使うべき
+- また[Pandas API on Spark](https://spark.apache.org/docs/latest/api/python/user_guide/pandas_on_spark/index.html)を用いることで、pandasのAPIをSpark上で利用可能になり、かつpandasの使いやすさとSparkのスケーラビリティを兼ね備えるため、Pandas UDFやPandas function APIを使用する前に、**Pandas API on Sparkの使用を検討**するとよい
+  - Sparkでネイティブに実装されていない処理の場合や、Pandas API on Sparkで実装されていない複雑なオペレーションを実行する場合は、Pandas UDF、Pandas function APIを活用
 - PySpark
+  ```python
+  data = [(1, 10.0), (2, 20.0), (3, 30.0)]
+  columns = ["id", "value"]
+  df = spark.createDataFrame(data, columns)
+
+  result_df = df.withColumn("value_doubled", col("value")*2)
+  result_df.show()
+  ```
 - Pandas UDF
-- Pandas API
+  - pandasがデータを操作する際にApache Arrowを使用
+  ```python
+  data = [(1, 10.0), (2, 20.0), (3, 30.0)]
+  columns = ["id", "value"]
+  df = spark.createDataFrame(data, columns)
+
+  # pandas_udfの定義
+  @pandas_udf(DoubleType())
+  def multiply_by_two(values):
+      return values * 2
+
+  result_df = df.withColumn("value_doubled", multiply_by_two(df["value"]))
+  result_df.show()
+  ```
+- Pandas function API
+  - pandasがデータを操作する際にApache Arrowを使用
+  - pandas UDFと同じ性質
+  - pandas function APIには3つのタイプがある
+    - [Map](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.mapInPandas.html#pyspark-sql-dataframe-mapinpandas)
+      - pandasのインスタンスを用いたmapオペレーションを実行
+      - 内部の関数は、pandas.DataFrameのイテレータを受け取り、pandas.DataFrameのイテレータを返却するように実装
+      - 各行に対してPandasの処理を適用し、複数の行を出力可能
+    - [Grouped map](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.GroupedData.applyInPandas.html#pyspark-sql-groupeddata-applyinpandas)
+      - 「split-apply-combine」パターンを実装するためにgroupBy().applyInPandas()を通じて、グループ分けされたデータの変換を行う
+      - 「split-apply-combine」は3つのステップから構成される
+        - DataFrame.groupByを用いてデータをグループに分割
+        - 各グループに関数を適用（関数の入力、出力はともにpandas.DataFrame）
+        - 新たなDataFrameに結果を統合
+      - groupBy().applyInPandas()を使用するには、以下を定義する必要がある
+        - 各グループに対する処理を定義するPython関数
+        - 出力DataFrameのスキーマを定義するStructTypeオブジェクトあるいは文字列
+    - Cogrouped map
+      - 共通のキーでグループ結合される2つのPySpark DataFrameに対して、groupby().cogroup().applyInPandas()を使用
+      - 変換は以下の3つのステップから構成される
+        - 各データフレームでキーを同じくするグループのデータがシャッフルされ、同じ共通グループにまとめられる
+        - 各グループに関数を適用（関数の入力、出力はともにpandas.DataFrame）
+        - 新たなDataFrameに結果を統合
+      - groupBy().cogroup().applyInPandas()を使用するには、以下を定義する必要がある
+        - 各グループに対する処理を定義するPython関数
+        - 出力DataFrameのスキーマを定義するStructTypeオブジェクトあるいは文字列
+  ```python
+  data = [(1, 10.0), (2, 20.0), (3, 30.0)]
+  columns = ["id", "value"]
+  df = spark.createDataFrame(data, columns)
+
+  # mapInPandasを使用してvalue列を2倍にする関数
+  def double_value(iterator):
+      for pdf in iterator:
+          pdf["value_doubled"] = pdf["value"] * 2
+          yield pdf
+
+  # mapInPandasの適用
+  result_df = df.mapInPandas(double_value, schema="id long, value double, value_doubled double")
+  result_df.show()
+  ```
 
 ## 参照
 - https://waltyou.github.io/Learning-Spark-0/
@@ -1519,3 +1585,5 @@ print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000"
 - https://www.modb.pro/db/70339
 - https://towardsdatascience.com/6-recommendations-for-optimizing-a-spark-job-5899ec269b4b
 - https://medium.com/@arjun289singh/a-comprehensive-overview-of-apache-spark-unleashing-the-power-of-distributed-computing-31aa0d1643fc
+- https://qiita.com/taka_yayoi/items/0fe6534824797b630176
+- https://qiita.com/taka_yayoi/items/bfe8fda543ebf0b761fb
