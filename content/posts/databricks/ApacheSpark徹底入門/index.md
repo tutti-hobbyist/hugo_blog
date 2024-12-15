@@ -1311,7 +1311,7 @@ mlflow.log_artifact(f"{save_filename}")
 mlflow.end_run()
 print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000")
 ```
-![MLflowのUI](mlflow_ui.png "MLflowのUI")
+![MLflowのUI](mlflow_ui.png "MLflowのUI (mlflow ui コマンドで表示)")
 ![Artifactsの中身](artifacts.png "Artifactsの中身")
 ### MLflowに登録したモデルを用いた推論
 - バッチ
