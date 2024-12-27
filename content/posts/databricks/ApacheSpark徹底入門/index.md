@@ -1508,6 +1508,7 @@ print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000"
   df_spark_sql = spark.read.csv('data.csv', header=True, inferSchema=True)
   ```
 ### 関数の使い分け
+![UDFのチートシート](UDF_cheetsheet.png "UDFのチートシート")
 - PySparkのDataFrameに対して処理を行いたい場合、以下のようにPySpark標準の処理、Pandas UDFを用いた処理、Pandas function APIを用いた処理がある
   - ただし、分散型のPandasオペレーションよりもネイティブのSpark関数を用いた方が高速
   - Sparkを使えない場合のフォールバックとしてのみ、分散Pandas関数を使うべき
@@ -1524,6 +1525,7 @@ print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000"
   ```
 - Pandas UDF
   - pandasがデータを操作する際にApache Arrowを使用
+  - pandas UDF ではベクトル化操作が可能で、一度に1行ずつ処理する Python UDF と比較してパフォーマンスが良い
   ```python
   data = [(1, 10.0), (2, 20.0), (3, 30.0)]
   columns = ["id", "value"]
@@ -1587,3 +1589,4 @@ print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000"
 - https://medium.com/@arjun289singh/a-comprehensive-overview-of-apache-spark-unleashing-the-power-of-distributed-computing-31aa0d1643fc
 - https://qiita.com/taka_yayoi/items/0fe6534824797b630176
 - https://qiita.com/taka_yayoi/items/bfe8fda543ebf0b761fb
+- https://livebook.manning.com/book/pyspark-in-action/chapter-9/
