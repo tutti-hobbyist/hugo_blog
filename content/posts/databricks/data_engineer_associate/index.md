@@ -76,6 +76,7 @@ rssFullText = false
 - %sh コマンドを使用することで、Databricks上のVMでシェルコマンドを実行可能
 - `dbutils.help()` で、dbutilsのヘルプを参照可能
 - `%fs ls {table_location}` で、テーブルのParquetとトランザクションログの実態を確認可能
+![マジックコマンド](magic_command.png "マジックコマンド")
 
 ### SQL
 - `CREATE SCHEMA/DATABASE {db_name}` で、新規データベースを作成可能
@@ -169,8 +170,8 @@ rssFullText = false
       - availableNow=True : 複数回のマイクロバッチ処理、処理完了後に停止
     - outputMode args
       - "append" (デフォルト) : 最後のトリガ以降に結果テーブルに追加された新しい行のみがシンクに出力される（各行が一度だけ出力されることを保証）
+      - "update" : 結果テーブルのうち、最後のトリガー以降に更新された行のみがシンクに出力される（集約処理がない場合、updateはappendと同じ）
       - "complete" : トリガが発生するたびに、結果テーブル全体がシンクに出力される（集約クエリでサポートされている）
-      - "update" : 結果テーブルのうち、最後のトリガー以降に更新された行のみがシンクに出力される
     - mergeSchema
       - スキーマの変化を受け入れて処理を行う場合 True
 - データのストリーミング読み書き

@@ -86,8 +86,23 @@ rssFullText = false
   - トランスフォーメーション
     - 遅延評価されるため、変換処理は即座に計算されるわけではなく、リネージとして記録
     - リネージの記録を利用して、協調処理や処理の最適化を実現
-    - ナロートランスフォーメーション（単一のパーティションで処理が完結）とワイドトランスフォーメーション（複数のパーティションを考慮した処理が必要）の２種類
     - 例：orderBy(), groupBy(), filter(), select(), join()
+    - ナロートランスフォーメーション（単一のパーティションで処理が完結）とワイドトランスフォーメーション（複数のパーティションを考慮したシャッフルやデータ交換処理が必要）の２種類
+      - ナロートランスフォーメーション
+        - select
+        - filter
+        - cast
+        - union
+      - ワイドトランスフォーメーション
+        - distinct
+        - groupBy
+        - sort
+        - join
+        ![ワイドトランスフォーメーション](wide_transformation.png "ワイドトランスフォーメーション")
+          - 例）groupBy.count()の処理フロー
+            - 1つのパーティションでgroupBy.count()した結果を key-value ペアの情報として書き出し (Shuffle Write)
+            - 全パーティションの出力を集計 (Shuffle Read) し、データ全体に対するグルーピング処理結果を出力
+          - 実際のデータサイズに比べて、Shuffle操作で読み書きするデータサイズは小さい
   - アクション
     - 記録されたトランスフォーメーションの評価を開始するトリガー
     - 例：show(), take(), count(), collect(), save()
@@ -162,8 +177,7 @@ rssFullText = false
 >   - [pyspark.sql.DataFrameの公式ドキュメント](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html)
 >   - [Pyspark Vs Pandas Cheatsheet](https://www.scribd.com/document/423024301/pyspark-vs-pandas-cheatsheet)
 > - DataFrameは実際にはScalaのDataset[Row]
-> - 頻繁または繰り返しクエリを実行する予定の大規模なDataFrameの場合、Cacheを利用するとよい
->    - DataFrame.cache()
+> - 頻繁または繰り返しクエリを実行する予定の大規模なDataFrameの場合、Cacheを利用するとよい (DataFrame.cache()、cache()は遅延操作のためActionの実行時に有効となる)
 - 列名の取得  
   ```python
   DataFrame.columns
@@ -336,18 +350,31 @@ rssFullText = false
   | **データの結合**   | `pd.concat([df1,df2])`<br>`df1.append(df2)`<br>`df1.join(df2)` | `df1.union(df2)`<br>`df1.join(df2)`     |
   | **直積**    | `df1['key'] = 1`<br>`df2['key'] = 1`<br>`df1.merge(df2, how='outer', on='key')` | `df1.crossJoin(df2)`  |
   | **データのソート**       | `df.sort_values()`<br>`df.sort_index()`      | `df.sort()`<br>`df.orderBy()`     |
+
 ### SparkSQL
 ![Spark SQL architecture and interface](spark_sql_architecture.png "Spark SQL architecture and interface")
 - SparkSQLのCatalystOptimizerは、計算クエリを受け取り、実行計画に変換する
   ```python
   # 実行計画の確認
   DataFrame.explain(True)
+  DataFrame.explain(mode="CODEGEN")   # バイトコードの表示
   ```
 - クエリ最適化の4つのフェーズ
   - 分析：SQLまたはDataFrameクエリの抽象構文木（AST）を生成
   - 論理的最適化：コストベース最適化
   - 物理的最適化：論理計画に適した物理計画を生成
   - コード生成：効率的なJavaバイトコードを生成
+  ![クエリの最適化の詳細](query_optimization.png "クエリの最適化の詳細")
+- Adaptive Query Optimizer (AQE)
+  - 設定された Shuffle Partition の数ではなく、適切なパーティション分割を実行
+  - 小さすぎるパーティション分割を回避
+- パーティション関連のコマンド
+  - `spark.sparkContext.defaultParallelism` : クラスタのコア数の取得
+  - `df.rdd.getNumPartitions()` : パーティション数の取得
+  - `df.repartition({num_partition})` : {num_partition}にパーティション数を変更
+  - `spark.conf.get("spark.sql.shuffle.partitions")` : シャッフルパーティション数の取得
+  - `spark.conf.set("spark.sql.shuffle.partitions", {num_partition})` : シャッフルパーティション数の設定
+  - `spark.conf.get("spark.sql.adaptive.enabled")` : AQE設定の取得
 
 ## 4章
 ### TempViewの作成とクエリの実行
@@ -453,6 +480,7 @@ for content in binary_row:
 
 ## 5章
 ### ユーザー定義関数 (UDF)
+![UDFの内部処理](udf_process.png "UDFの内部処理")
 - UDFはセッションごとに動作し、メタストアに永続化されない
 ```python
 from pyspark.sql import SparkSession
@@ -483,7 +511,8 @@ df = spark.range(1, 10001)
 def squared(n):
     return n**2
 
-spark.udf.register("squared", squared, LongType()) # UDFの登録
+spark.udf.register("squared", squared, LongType())  # UDFの登録
+squared = udf(lambda n: squared(n), LongType())     # UDFの別の登録方法
 
 pyspark_udf_elapse_list = []
 for iter in range(6):
@@ -877,13 +906,18 @@ conf.set({key}: {value})
       - 投影オペレーション：select, explode, map, flatmap, etc
       - 選択オペレーション：filter, where, etc
     - サポートモード：append, update, output
+      - append : 新しいストリームデータのみを保持
+      - update : 集約処理で変更があった部分を更新（集約処理がない場合、updateはappendと同じ）
       - completeモードがサポートされていないのは、増加し続ける結果データの保持コストが高いため
   - ステートフル・オペレーション
     - 常に DataFrame.groupBy() or DataFrame.groupByKey() を使用する必要がある
     - ウィンドウによる集計  
-      -> `streamDF.groupBy("{column_name}", window("{timestamp}", "10 minutes", "5 minutes")).count()`
-    - watermarkによる遅延保障：指定時間内のデータは削除しない  
-      -> `streamDF.withWatermark("{timestamp}", "10 minutes")groupBy("{column_name}", window("{timestamp}", "10 minutes", "5 minutes")).count()`
+      - Tumbling Windows : 処理対象データが一つのWindowでだけ処理される
+        -> `streamDF.groupBy("{column_name}", window("{timestamp}", "5 minutes")).count()`
+      - Sliding Windows : 処理対象データが複数のWindowで処理される
+        -> `streamDF.groupBy("{column_name}", window("{timestamp}", "10 minutes", "5 minutes")).count()`
+    - watermarkによる遅延保障：指定時間内のデータは処理対象から除外しない（ネットワークえらーなどの理由で、データ内に列として記録されている時刻に比べて、遅れて到着してきたデータに対して、その時刻に到着したデータとして再度処理を行い更新）  
+      -> `streamDF.withWatermark("{timestamp}", "10 minutes").groupBy("{column_name}", window("{timestamp}", "10 minutes", "5 minutes")).count()`
 - ストリームデータの結合
   - Stream-Static：全ストリームデータに対して結合可能、1つのストリームデータを静的情報でエンリッチ化する際に使用
     - inner-join, left-join (StreamDFが左), right-join (StreamDFが右) をサポート
@@ -1523,16 +1557,41 @@ print("execute 'mlflow ui' in another terminal and access http://127.0.0.1:5000"
   result_df = df.withColumn("value_doubled", col("value")*2)
   result_df.show()
   ```
+- Python UDF
+  - シリアライズ・デシリアライズをPickleで実施
+  - UDFを1行ずつ適用するため処理が遅い
+  ```python
+  # Vanilla UDF
+  def say_hello(name):
+    return f"Hello {name}"
+
+  # Decorator UDF
+  @udf(returnType=StringType())
+  def say_hello(name):
+    return f"Hello {name}"
+  
+  df = df.withColumn("greet", say_hello("name"))
+  ```
 - Pandas UDF
-  - pandasがデータを操作する際にApache Arrowを使用
-  - pandas UDF ではベクトル化操作が可能で、一度に1行ずつ処理する Python UDF と比較してパフォーマンスが良い
+  - pandasがデータを操作する際にApache Arrowを使用するため、シリアライズコストがない
+  - pandas UDF ではベクトル化操作（列に対する一斉処理）が可能で、一度に1行ずつ処理する Python UDF と比較してパフォーマンスが良い
+  ```python
+  import pandas as pd
+  from pyspark.sql.functions import pandas_udf
+
+  @pandas_udf(returnType=StringType())
+  def vector_udf(email:pd.Series)
+    return email.split("@")[0]
+  
+  df.select(vector_udf("email"))
+  ```
   ```python
   data = [(1, 10.0), (2, 20.0), (3, 30.0)]
   columns = ["id", "value"]
   df = spark.createDataFrame(data, columns)
 
   # pandas_udfの定義
-  @pandas_udf(DoubleType())
+  @pandas_udf(returnType=DoubleType())
   def multiply_by_two(values):
       return values * 2
 
