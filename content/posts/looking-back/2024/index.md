@@ -56,7 +56,7 @@ rssFullText = false
 
     がん細胞検知モデルの開発はDatabricks上で行っており、実験管理を行うためにMLflowを活用している。各モデルの開発に使用したデータセット・画像処理・パラメータをトラッキング出来るようなパイプラインを作成し、モデル開発の透明性や再現性を可能な限り高く保つように工夫している。
 
-- プロダクト知識
+- プロダクト
 
     以下のサービス・技術を扱った
   - AWS
@@ -65,4 +65,9 @@ rssFullText = false
     - Cluster / Unity Catalog / Job / Models / Serving / Experiment / Vector Search / Foundation Model
   - Dataiku
     - Recipe / Analyze / Job / Chart / Statistics / Scenario / Wiki / Dashboard / AutoML / Webapp / Dataiku Solutions / Dataiku Gallery
+<br>
+
+### ブログでのアウトプット
+[ブログ](https://tutti-hobbyist.github.io/hugo_blog/)でのアウトプットを継続した。2024年は大小合わせて全部で32記事を書いた。内容は本ブログで使用しているSSGのHugoについてや、前職で身に着けた知識、読書記録、試験勉強のまとめなど色々書き記した。本ブログは基本的には自分用のメモであったり、勉強した記録を残すために使用しているため、誰かの役に立つような内容は少ないかもしれないが、もし参考になる情報を少しでも提供できていたら嬉しく感じる。
+![2024年の記事一覧](2024_articles.png "2024年の記事一覧")
 <br>
