@@ -47,6 +47,23 @@ Sentence.
 ```bash
 Script
 ```
+- **Web関連**:
+  - `html`, `xml`, `css`, `javascript`, `typescript`, `json`, `markdown`
+
+- **プログラミング言語**:
+  - `python`, `ruby`, `perl`, `php`, `java`, `c`, `cpp`, `csharp`, `go`, `rust`, `swift`, `kotlin`
+  
+- **スクリプト言語**:
+  - `bash`, `shell`, `zsh`, `powershell`
+
+- **データフォーマット**:
+  - `yaml`, `toml`, `ini`, `csv`
+
+- **データベース言語**:
+  - `sql`, `postgresql`, `mysql`
+
+- **その他**:
+  - `dockerfile`, `makefile`, `diff`, `git`
 
 ### テーブル
 | Col1 | Col2 |
