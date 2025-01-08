@@ -40,8 +40,10 @@ rssFullText = false
 
 ## その他
 - [scalable-machine-learning-with-apache-spark-japanese](https://github.com/skotani-db/scalable-machine-learning-with-apache-spark-japanese)
-- [Databricks Certified Machine Learning Associate Exam](https://www.examtopics.com/exams/databricks/certified-machine-learning-associate/view/)
-- [Databricks Certified Machine Learning Professional Exam](https://www.examtopics.com/exams/databricks/certified-machine-learning-professional/view/)
+- [Databricks Certified Machine Learning Associate Exam (Exam Topic)](https://www.examtopics.com/exams/databricks/certified-machine-learning-associate/view/)
+- [Databricks Certified Machine Learning Professional Exam (Exam Topic)](https://www.examtopics.com/exams/databricks/certified-machine-learning-professional/view/)
+- [Databricks Certified Machine Learning Associate Exam (IT Exam)](https://www.itexams.com/exam/Certified-Machine-Learning-Associate)
+- [Databricks Certified Machine Learning Professional Exam (IT Exam)](https://www.itexams.com/exam/Certified-Machine-Learning-Professional)
 - [34 Things I Wished I Knew Before My Databricks ML Associate Exam](https://medium.com/@theblogofdaniel/34-things-i-wished-i-knew-before-my-databricks-ml-associate-exam-49113d261ad8)
 - [Databricks Machine Learning Associate](https://tekmastery.com/b/dbml)
 - [Databricks Machine Learning Professional](https://tekmastery.com/b/databricks-machine-learning-professional)
@@ -227,7 +229,7 @@ rssFullText = false
 | Databricks AutoML で最も精度の高いモデルのコードの確認方法 | Best Trial Notebook リンクを開く |
 | Delta Tableをストリーミングで読み込むコード   | `spark.readStream`  |
 | Delta Lakeフォーマットのパスからデータを読み込むコードを選べ | `spark.read.load(path)`|
-| Delta Tableのタイムトラベルの最初の履歴を選ぶコードを選べ  | `SELECT * FROM table VERSION AS OF 0` |
+| Delta Tableのタイムトラベルの最初の履歴を選ぶコードを選べ  | `SELECT * FROM table VERSION をしゅとくするｌこｐをしゅとくするｌこｐ
 | Feature Storeのテーブルを上書きするオプション | 'overwrite'  |
 | あらゆる機械学習ライブラリでメトリックのautologを有効にする方法 | `mlflow.autolog()` |
 | pathにあるファイルをMLflow Trackingにartifactsを記録するコードを選べ| `mlflow.log_artifacts(local_dir, artifact_path=path)` |
@@ -244,7 +246,21 @@ rssFullText = false
 | Jensen-Shanon Distanceの欠点  | 自分で閾値を設定する必要がある  |
 | KS検定の欠点  | サンプルサイズの影響を受けやすい  |
 | 特定の時系列同士でカテゴリ列の分布を比較する手法  | contingency table（分割表） |
-| あるカテゴリ列の特徴量で、本番モデルでは学習時よりもnullが多く入っている場合に、統計的な有意性を検証する手法 | Chi-squared Contingency Test（カイ二乗独立性検定） |
+| あるカテゴリ列の特徴量で、本番モデルでは学習時よりもnullが多く入っている場合に、統計的な有意性を検証する手法 | One-way Chi-squared Test（カイ二乗適合度検定） |
+| Feature Tableのメタデータを取得するコード | `fs.get_table("new_table").description` |
+| モデルオブジェクトをパイプラインの最終段階に配置することによる悪影響は何 | 特徴量エンジニアリングのステップにおいてバリデーションデータが使用されてしまう |
+| Spark DataFrames と pandas API on Spark DataFrames の関係として適切な説明 | pandas API on Spark DataFrames は Spark DataFrames と付随するメタデータから構成される |
+| データをロードし、star_rating列を削除するコード | `spark.read.format(“delta”).load(path).drop(“star_rating”)` |
+| exp_id に対するランレベルの結果をSpark DataFrameで取得するコード | `mlflow.search_runs(exp_id)` |
+| Spark DataFrameを学習用DataFrameとテスト用DataFrameにランダムに分割するために使用できるSpark操作 | `DataFrame.randomSplit` |
+| 以下の特徴量エンジニアリングタスクの中で、分散処理において最も非効率的な処理 | 欠損値を中央値で補完（中央値の計算はデータのソートが必要なため、大規模データセットの分散処理において最も非効率） |
+| 標準的な PySpark UDF の代わりにベクトル化された pandas UDF を使用する利点 | ベクトル化された pandas UDF はデータを1行ずつではなくバッチ単位で処理 |
+| SparkのDataFrameをpandas風のAPIで操作するスクリプト | `import pyspark.pandas as ps <br> df = ps.DataFrame(spark_df) ` |
+| 過去のデルタテーブルを確認するSQLコマンド | `DESCRIBE HISTORY` |
+| ラベルドリフトとは | 目的変数の分布に変化があるとき |
+| MLflow Model Serving で自動的にデプロイされ、リアルタイムでクエリ可能なステージ | Staging, Production |
+| MLflow AutologgingとHyperoptを使用する場合、ハイパーパラメータ探索プロセス全体を1つの親ラン（parent run）として管理し、各ハイパーパラメータの組み合わせを子ラン（child run）として記録する方法 | fminを呼び出す前に手動で親ランを開始（各ハイパーパラメータの組み合わせについては、objective_function内で子ラン（nested=True）として記録される） |
+| MLflowでSignatureを記録する利点 | モデルサービング時に入力データの型を検証できるため、予期しないエラーを防ぐことが可能 |
 
 ## 知識
 ![ML lifecycle in Databricks](ML_lifecycle.png "DatabricksにおけるMLライフサイクル")
