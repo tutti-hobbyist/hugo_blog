@@ -53,17 +53,17 @@ rssFullText = false
 
 # 試験結果
 - Machine Learning Associate
-  -  : %
-  -  : %
-  -  : %
-  -  : %
-  -  : %
+  - Databricks Machine Learning : 61 %
+  - Data Processing : 88 %
+  - Model Development : 81 %
+  - Model Deployment : 100 %
+  - Score : 77.08 % (37 corrects /48 questions)
 - Machine Learning Professional
-  -  : %
-  -  : %
-  -  : %
-  -  : %
-  -  : %
+  - Experimentation : 83.33 %
+  - Model Lifecycle Management : 83.33 %
+  - Model Deployment : 85.71 %
+  - Solution and Data Monitoring : 88.88 %
+  - Score : Nan % ( Nan corrects / 59 questions)
 
 # まとめ
 ## 試験対策
@@ -87,7 +87,7 @@ rssFullText = false
 | ターゲット変数のlogを取って機械学習した後にRMSEで評価する場合に必要な処理 | 予測結果をexponent関数で元に戻す |
 | Scikit-LearnとPySparkの決定⽊モデルのアルゴリズムの違い  | PySparkの場合、入力特徴量のうちカテゴリ変数の最大ユニーク数以上の値をmaxBinsに指定する必要がある |
 | cross-validationよりもtrain-testの⽅が優れているとき  | 計算時間とリソースが限られている場合 |
-| 3層cross-validationで、2つのハイパーパラメータそれぞれ2.3パターンでgrid searchする時の合計学習回数 | 19回：3×2×3+1 (CV終了後にベストな設定でモデルを学習) |
+| 3層cross-validationで、2つのハイパーパラメータそれぞれ2.3パターンでgrid searchする時の合計学習回数 | 18回（3×2×3） |
 | HyperOptを分散処理で実⾏する関数       | SparkTrial     |
 | HyperOptの精度を向上するためのパラメータ | max_evals      |
 | HyperOptのハイパーパラメータ探索最適化アルゴリズム      | Tree-structured Parzen Estimator |
@@ -157,7 +157,7 @@ rssFullText = false
 | クラスターを ML 用の新しい Databricks Runtime バージョンにアップグレードするときに不要な手順 | アップグレード後に、以前にインストールしたすべての Python ライブラリを手動で再インストール |
 | Spark ML でトレーニングされた機械学習モデルをリアルタイム予測環境に展開する際に直面する課題 | 予測を行う際に、Spark の分散特性によって生じるレイテンシを管理 |
 | Pandas API on Spark を使用してクラスター全体でデータをシャッフルする必要がある操作を実行するときに発生する可能性のある問題 | ネットワークのオーバーヘッドとディスク I/O により、パフォーマンスが大幅に低下する可能性（クラスター内の異なるノード間でのデータの移動が伴うため） |
-| F1 スコアよりもリコールを優先するシナリオ | 偽陽性のコストが偽陰性のコストよりも大幅に高い場合 |
+| F1 スコアよりもリコールを優先するシナリオ | 偽陰性のコストが偽陽性のコストよりも大幅に高い場合 |
 | Spark で Pandas API を使用する場合、InternalFrame が処理速度に及ぼす影響 | データシリアル化プロセスをバイパスできるようにすることで、処理速度を最適化（InternalFrameはPandasとSparkのAPIの違いを吸収し、ユーザーにとって統一的なインターフェースを提供する基盤） |
 | スタッキングアンサンブルにおけるメタモデルの役割 | ベースモデルの予測結果をもとに最終予測を出力 |
 | 分散モデル推論を行うために、UDFを実装する必要のあるライブラリ | Scikit-learn |
@@ -170,7 +170,7 @@ rssFullText = false
 | Databricks AutoMLのデフォルトの評価指標 | r2（回帰）, f1（分類）, smape（時系列予測） |
 | AutoMLで最も良いモデルの取得 | `summary.best_trial` |
 | ジョブとタスクの関係 | ジョブは1つ以上のタスク(つまりマルチタスク) で構成される |
-| Feature Store と Unity Catalog の関係 | Unity Catalog が有効になっているワークスペースの場合：DataFrame を Unity Catalog の Feature Table として書き込み <br>ワークスペースで Unity Catalog が有効になっていない場合：DataFrame を Workspace Feature Store の Feature Table として書き込み |
+| Feature Store と Unity Catalog の関係 | Unity Catalog が有効になっているワークスペースの場合：DataFrame を Unity Catalog の Feature Table として書き込み、ワークスペースで Unity Catalog が有効になっていない場合：DataFrame を Workspace Feature Store の Feature Table として書き込み |
 | 既存のデルタ テーブルを Feature Table として登録する方法 | `fs.register_table(delta_table='schema.table', primary_keys=['key'], description='')` |
 | `fs.get_table` で得られる情報 | Feature Table のメタデータ |
 | `fs.create_training_set` の正しい記述 | `training_set = fs.create_training_set(df=df, feature_lookups=feature_lookups, label= None, exclude_columns=[ 'customer_id' ] ) ` |
@@ -229,7 +229,7 @@ rssFullText = false
 | Databricks AutoML で最も精度の高いモデルのコードの確認方法 | Best Trial Notebook リンクを開く |
 | Delta Tableをストリーミングで読み込むコード   | `spark.readStream`  |
 | Delta Lakeフォーマットのパスからデータを読み込むコードを選べ | `spark.read.load(path)`|
-| Delta Tableのタイムトラベルの最初の履歴を選ぶコードを選べ  | `SELECT * FROM table VERSION をしゅとくするｌこｐをしゅとくするｌこｐ
+| Delta Tableのタイムトラベルの最初の履歴を選ぶコードを選べ  | `SELECT * FROM table VERSION AS OF 0`
 | Feature Storeのテーブルを上書きするオプション | 'overwrite'  |
 | あらゆる機械学習ライブラリでメトリックのautologを有効にする方法 | `mlflow.autolog()` |
 | pathにあるファイルをMLflow Trackingにartifactsを記録するコードを選べ| `mlflow.log_artifacts(local_dir, artifact_path=path)` |
@@ -255,12 +255,14 @@ rssFullText = false
 | Spark DataFrameを学習用DataFrameとテスト用DataFrameにランダムに分割するために使用できるSpark操作 | `DataFrame.randomSplit` |
 | 以下の特徴量エンジニアリングタスクの中で、分散処理において最も非効率的な処理 | 欠損値を中央値で補完（中央値の計算はデータのソートが必要なため、大規模データセットの分散処理において最も非効率） |
 | 標準的な PySpark UDF の代わりにベクトル化された pandas UDF を使用する利点 | ベクトル化された pandas UDF はデータを1行ずつではなくバッチ単位で処理 |
-| SparkのDataFrameをpandas風のAPIで操作するスクリプト | `import pyspark.pandas as ps <br> df = ps.DataFrame(spark_df) ` |
+| SparkのDataFrameをpandas風のAPIで操作するスクリプト | `import pyspark.pandas as ps df = ps.DataFrame(spark_df) ` |
 | 過去のデルタテーブルを確認するSQLコマンド | `DESCRIBE HISTORY` |
 | ラベルドリフトとは | 目的変数の分布に変化があるとき |
 | MLflow Model Serving で自動的にデプロイされ、リアルタイムでクエリ可能なステージ | Staging, Production |
 | MLflow AutologgingとHyperoptを使用する場合、ハイパーパラメータ探索プロセス全体を1つの親ラン（parent run）として管理し、各ハイパーパラメータの組み合わせを子ラン（child run）として記録する方法 | fminを呼び出す前に手動で親ランを開始（各ハイパーパラメータの組み合わせについては、objective_function内で子ラン（nested=True）として記録される） |
 | MLflowでSignatureを記録する利点 | モデルサービング時に入力データの型を検証できるため、予期しないエラーを防ぐことが可能 |
+| Databricks で spark df のプロファイルを出力するコード | `dbutils.data.summarize(df)` |
+
 
 ## 知識
 ![ML lifecycle in Databricks](ML_lifecycle.png "DatabricksにおけるMLライフサイクル")
