@@ -2,7 +2,7 @@
 title = 'Databricks Certified Generative AI Engineer Associate 試験勉強まとめ'
 subtitle = ""
 date = 2024-01-31
-lastmod = 2024-02-08
+lastmod = 2024-02-07
 draft = false
 KaTex = false
 author = "Tuuutti"
