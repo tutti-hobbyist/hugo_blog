@@ -1,3 +1,4 @@
 Get-Service ssh-agent
 Start-Service ssh-agent
-ssh-add "C:\Users\ysken\.ssh\id_rsa_github"
+ssh-add "$env:USERPROFILE\.ssh\id_ed25519"
+ssh-add -l
