@@ -1,8 +1,8 @@
 +++
 title = 'Databricks Certified Data Engineer Professional 試験勉強まとめ'
 subtitle = ""
-date = 2025-03-31
-lastmod = 2025-03-31
+date = 2025-03-25
+lastmod = 2025-03-25
 draft = false
 KaTex = false
 author = "Tuuutti"
@@ -170,6 +170,11 @@ rssFullText = false
 - トランザクションログを使用して、テーブルに対する変更を確認し、以前のテーブルバージョンをクエリ可能
 - 書き込み時にスキーマを検証し、テーブルに書き込まれたすべてのデータが設定した要件と一致することを確認
 - メタデータ解析と物理データレイアウトを組み合わせて、ファイルIOの数を減らし、処理の高速化を実現
+- 10コミットごとに、それまでのトランザクションの内容が集約されたチェックポイントファイルが作成され、作成後はこのファイルとそれ以降のJSONログを読み込むだけで済むため、ログの読み取りコストが低減し、高速なデータアクセスが可能になる。さらにログファイルの効率的な管理にもつながる。
+  - チェックポイントファイルの中身を確認するコード
+    ```python
+    display(spark.read.parquet(f"{save_path}/_delta_log/00000000000000000010.checkpoint.parquet"))
+    ```
 - Deltaテーブルの特定の機能を削除することも可能
   - コード
     ```sql
@@ -615,112 +620,236 @@ rssFullText = false
   - コンピュート最適化インスタンスをワーカーとして使用
   - シャッフル パーティションの数を、クラスターのコア数の 1 倍から 2 倍に設定
   - spark.sql.streaming.noDataMicroBatches.enabled を false に設定（データを含まないマイクロバッチを処理しないように設定）
-- 結合処理
-  - バッチ結合
-    - ステートレス
-  - ストリーミング結合
-    - Stream-Stream 結合
-      - ステートフル
-      - データソースと結果に関する情報を追跡し、結果を繰り返し更新
-      - 結合の両側にウォーターマークを定義する必要がある
-      - 状態データを自動的にチェックポイントし、再起動後に同じスキーマとして復元するため、再起動間で以下のようなスキーマを変更してはならない
-        - ストリーミング集計でのグループ化キー・集計の数・タイプの変更
-        - ストリーミング重複排除でのグループ化キー・集計の数・タイプの変更
-        - ストリーム-ストリーム join でのスキーマの変更やジョインの種類 (外部または内部) の変更
-        - 
-      - サポートされているJOINタイプ
-        - Inner join
-        - Left outer join
-        - Right outer join
-        - Full outer join
-        - Left semi join
-      - コード
-        ```python
-        import dlt
 
-        dlt.create_streaming_table("adImpressionClicks")
-        @dlt.append_flow(target = "adImpressionClicks")
-        def joinClicksAndImpressions():
-          clicksDf = (read_stream("rawClicks")
-            .withWatermark("clickTimestamp", "3 minutes")
-          )
-          impressionsDf = (read_stream("rawAdImpressions")
-            .withWatermark("impressionTimestamp", "3 minutes")
-          )
-          joinDf = impressionsDf.alias("imp").join(
-          clicksDf.alias("click"),
-          expr("""
-            imp.userId = click.userId AND
-            clickAdId = impressionAdId AND
-            clickTimestamp >= impressionTimestamp AND
-            clickTimestamp <= impressionTimestamp + interval 3 minutes
-          """),
-          "inner"
-          ).select("imp.userId", "impressionAdId", "clickTimestamp", "impressionSeconds")
-
-          return joinDf
-        ```
-    - Stream-Static 結合
-      - ステートレス
-      - 増分データソース (ファクトテーブルなど) と静的データソース (緩やかに変化するディメンションテーブルなど) を結合するための適切なオプションを提供
-      - ストリーミング ソースから新しく受信したレコードのみが現在のバージョンの静的テーブルと結合される
-      - コード
-        ```python
-        streamingDF = spark.readStream.table("orders")
-        staticDF = spark.read.table("customers")
-
-        query = (streamingDF
-          .join(staticDF, streamingDF.customer_id==staticDF.id, "inner")
-          .writeStream
-          .option("checkpointLocation", checkpoint_path)
-          .table("orders_with_customer_info")
-        )
-        ```
-
-### 構造化ストリーミング
-- トリガータイプ
-  | トリガータイプ | 構文例 | 説明 |
-  |--------------|-------|-----|
-  | Fixed interval micro batches | .trigger(processingTime = "2 minutes") | Micro-batchプロセスをユーザー指定の間隔で実行 |
-  | Triggered One-time micro batch | .trigger(once=True) | （**Deprecated**）利用可能なすべてのデータを単一のマイクロバッチとして処理し、自動的にクエリを停止する |
-  | Triggered One-time micro batches | .trigger(availableNow=True) | 利用可能なすべてのデータを複数のマイクロバッチとして処理し、自動的にクエリを停止する |
-  | Continuous Processing | .trigger(continuous= "2 seconds") | イベントが利用可能になるとすぐにデータの読み取り、処理、書き込みを継続的に行い、指定した頻度でチェックポイントを作成（DLT で適用される連続処理とは全く関係がない） |
-  | Default | - | Databricks: 500ms固定間隔｜Apache Spark: 前のマイクロバッチが処理され次第、次のマイクロバッチを処理 |
-
-- アウトプットモード
-  - ステートレスストリーミングの場合、すべての出力モードは同じように動作（常にそのトリガー中に処理されたレコードを出力）
-  - ステートフルストリーミングの場合、出力モードごとに異なる動作
-  | 出力モード | 説明             |
-  | ---------- | ----------- |
-  | Append (デフォルト)    | ウォーターマークを考慮の上、将来のトリガーで変更されない行のみを出力 (確定した情報を取得したい場合に有効)       |
-  | Update   | 出力されたレコードが後続のトリガーで変更される可能性がある場合でも、トリガー中に変更されたすべての行を出力 (集計結果をリアルタイムに追跡したい場合に有効) |
-  | Complete (ストリーミング集計でのみ機能)  | 生成されたすべての結果の行をダウンストリームに出力 |
-
-- ウィンドウタイプ
-  | ウィンドウタイプ | 特徴 | 例 | コード |
-  |---------------|------|-----|----|
-  | Tumbling Window | ウィンドウの重複なし｜任意のイベントは1つだけのウィンドウグループに集計される | 1:00-2:00 am, 2:00-3:00 am, 3:00-4:00 am, ... | `windowed_counts = events.groupBy(window("event_time", "1 hour")).agg(count("*").alias("event_count"))` |
-  | Sliding Window | ウィンドウが重複する｜任意のイベントは複数のウィンドウグループに集計される | 1:00-2:00 am, 1:30-2:30 am, 2:00-3:00 am, ... | `windowed_counts = events.groupBy(window("event_time", "1 hour", "30 minutes")).agg(count("*").alias("event_count"))` |
-
-- ウォーターマーク
-  - 遅延データ（late data）を管理するための時間的しきい値
-  - 古いステート情報を自動的に削除し、メモリ使用量を最適化
-  - ウィンドウベースの集計で効果的に機能
-  - スクリプト
+#### 結合
+- バッチ結合
+  - ステートレス
+- Stream-Stream 結合
+  - ステートフル
+  - データソースと結果に関する情報を追跡し、結果を繰り返し更新
+  - 結合の両側にウォーターマークを定義する必要がある
+  - 状態データを自動的にチェックポイントし、再起動後に同じスキーマとして復元するため、再起動間で以下のようなスキーマを変更してはならない
+    - ストリーミング集計でのグループ化キー・集計の数・タイプの変更
+    - ストリーミング重複排除でのグループ化キー・集計の数・タイプの変更
+    - ストリーム-ストリーム join でのスキーマの変更やジョインの種類 (外部または内部) の変更
+    - 
+  - サポートされているJOINタイプ
+    - Inner join
+    - Left outer join
+    - Right outer join
+    - Full outer join
+    - Left semi join
+  - コード
     ```python
-    # イベント時間列とウォーターマークの遅延閾値を指定
-    streaming_df = streaming_df.withWatermark("eventTime", "10 minutes")
+    import dlt
 
-    # ウォーターマーク内に到着した重複レコードの削除
-    streaming_df = streaming_df.withWatermark("eventTime", "10 minutes").dropDuplicatesWithinWatermark(["id"])
+    dlt.create_streaming_table("adImpressionClicks")
+    @dlt.append_flow(target = "adImpressionClicks")
+    def joinClicksAndImpressions():
+      clicksDf = (read_stream("rawClicks")
+        .withWatermark("clickTimestamp", "3 minutes")
+      )
+      impressionsDf = (read_stream("rawAdImpressions")
+        .withWatermark("impressionTimestamp", "3 minutes")
+      )
+      joinDf = impressionsDf.alias("imp").join(
+      clicksDf.alias("click"),
+      expr("""
+        imp.userId = click.userId AND
+        clickAdId = impressionAdId AND
+        clickTimestamp >= impressionTimestamp AND
+        clickTimestamp <= impressionTimestamp + interval 3 minutes
+      """),
+      "inner"
+      ).select("imp.userId", "impressionAdId", "clickTimestamp", "impressionSeconds")
+
+      return joinDf
+    ```
+    ```python
+    from pyspark.sql import functions as F
+    from pyspark.sql.window import Window
+
+    def batch_upsert(microBatchDF, batchId):
+        window = Window.partitionBy("order_id", "customer_id").orderBy(F.col("_commit_timestamp").desc())
+
+        (microBatchDF.filter(F.col("_change_type").isin(["insert", "update_postimage"]))
+                    .withColumn("rank", F.rank().over(window))
+                    .filter("rank = 1")
+                    .drop("rank", "_change_type", "_commit_version")
+                    .withColumnRenamed("_commit_timestamp", "processed_timestamp")
+                    .createOrReplaceTempView("ranked_updates"))
+
+        query = """
+            MERGE INTO customers_orders c
+            USING ranked_updates r
+            ON c.order_id=r.order_id AND c.customer_id=r.customer_id
+                WHEN MATCHED AND c.processed_timestamp < r.processed_timestamp
+                  THEN UPDATE SET *
+                WHEN NOT MATCHED
+                  THEN INSERT *
+        """
+
+        microBatchDF.sparkSession.sql(query)
+
+    def process_customers_orders():
+        orders_df = spark.readStream.table("orders_silver")
+
+        cdf_customers_df = (spark.readStream
+                                .option("readChangeData", True)
+                                .option("startingVersion", 2)
+                                .table("customers_silver")
+                          )
+
+        query = (orders_df
+                    .join(cdf_customers_df, ["customer_id"], "inner")
+                    .writeStream
+                        .foreachBatch(batch_upsert)
+                        .option("checkpointLocation", "dbfs:/mnt/demo_pro/checkpoints/customers_orders")
+                        .trigger(availableNow=True)
+                        .start()
+                )
+
+        query.awaitTermination()
+
+    process_customers_orders()
+    ```
+- Stream-Static 結合
+  - ステートレス
+  - 増分データソース (ファクトテーブルなど) と静的データソース (緩やかに変化するディメンションテーブルなど) を結合するための適切なオプションを提供
+  - ストリーミング ソースから新しく受信したレコードのみが現在のバージョンの静的テーブルと結合される
+    - ストリームテーブルへのデータ追加のみでトリガーされ、静的テーブルへのデータ追加ではトリガーされない
+    - クエリがトリガーされた際は、常に最新の静的テーブルが参照される
+  - コード
+    ```python
+    streamingDF = spark.readStream.table("orders")
+    staticDF = spark.read.table("customers")
+
+    query = (streamingDF
+      .join(staticDF, streamingDF.customer_id==staticDF.id, "inner")
+      .writeStream
+      .option("checkpointLocation", checkpoint_path)
+      .table("orders_with_customer_info")
+    )
+    ```
+    ```python
+    from pyspark.sql import functions as F
+
+    def process_books_sales():
+
+        orders_df = (spark.readStream.table("orders_silver")
+                            .withColumn("book", F.explode("books"))
+                    )
+
+        books_df = spark.read.table("current_books")
+
+        query = (orders_df
+                      .join(books_df, orders_df.book.book_id == books_df.book_id, "inner")
+                      .writeStream
+                        .outputMode("append")
+                        .option("checkpointLocation", "dbfs:/mnt/demo_pro/checkpoints/books_sales")
+                        .trigger(availableNow=True)
+                        .table("books_sales")
+        )
+
+        query.awaitTermination()
+
+    process_books_sales()
     ```
 
-- Slowly Changing Dimension
-  | 特徴    | SCDタイプ1        | SCDタイプ2 |
-  | ------- | ----- | --- |
-  | 変更履歴       | 保持しない        | すべて保持する     |
-  | データ更新     | 既存レコードを上書き      | 新しいレコードを追加、過去レコードは有効期限付きで保持 |
-  | 実装    | 比較的簡単        | 複雑       |
+### 構造化ストリーミング
+#### トリガータイプ
+| トリガータイプ | 構文例 | 説明 |
+|--------------|-------|-----|
+| Fixed interval micro batches | .trigger(processingTime = "2 minutes") | Micro-batchプロセスをユーザー指定の間隔で実行 |
+| Triggered One-time micro batch | .trigger(once=True) | （**Deprecated**）利用可能なすべてのデータを単一のマイクロバッチとして処理し、自動的にクエリを停止する |
+| Triggered One-time micro batches | .trigger(availableNow=True) | 利用可能なすべてのデータを複数のマイクロバッチとして処理し、自動的にクエリを停止する |
+| Continuous Processing | .trigger(continuous= "2 seconds") | イベントが利用可能になるとすぐにデータの読み取り、処理、書き込みを継続的に行い、指定した頻度でチェックポイントを作成（DLT で適用される連続処理とは全く関係がない） |
+| Default | - | Databricks: 500ms固定間隔｜Apache Spark: 前のマイクロバッチが処理され次第、次のマイクロバッチを処理 |
+
+#### アウトプットモード
+- ステートレスストリーミングの場合、すべての出力モードは同じように動作（常にそのトリガー中に処理されたレコードを出力）
+- ステートフルストリーミングの場合、出力モードごとに異なる動作
+| 出力モード | 説明             |
+| ---------- | ----------- |
+| Append (デフォルト)    | ウォーターマークを考慮の上、将来のトリガーで変更されない行のみを出力 (確定した情報を取得したい場合に有効)       |
+| Update   | 出力されたレコードが後続のトリガーで変更される可能性がある場合でも、トリガー中に変更されたすべての行を出力 (集計結果をリアルタイムに追跡したい場合に有効) |
+| Complete (ストリーミング集計でのみ機能)  | 生成されたすべての結果の行をダウンストリームに出力 |
+
+#### ウィンドウタイプ
+| ウィンドウタイプ | 特徴 | 例 | コード |
+|---------------|------|-----|----|
+| Tumbling Window (タンブリングウィンドウ) | ウィンドウの重複なし｜任意のイベントは1つだけのウィンドウグループに集計される | 1:00-2:00 am, 2:00-3:00 am, 3:00-4:00 am, ... | `windowed_counts = events.groupBy(window("event_time", "1 hour")).agg(count("*").alias("event_count"))` |
+| Sliding Window (スライディングウィンドウ) | ウィンドウが重複する｜任意のイベントは複数のウィンドウグループに集計される | 1:00-2:00 am, 1:30-2:30 am, 2:00-3:00 am, ... | `windowed_counts = events.groupBy(window("event_time", "1 hour", "30 minutes")).agg(count("*").alias("event_count"))` |
+
+#### ウォーターマーク
+- 遅延データ（late data）を管理するための時間的しきい値
+- 古いステート情報を自動的に削除し、メモリ使用量を最適化
+- ウィンドウベースの集計で効果的に機能
+- スクリプト
+  ```python
+  # イベント時間列とウォーターマークの遅延閾値を指定
+  streaming_df = streaming_df.withWatermark("eventTime", "10 minutes")
+
+  # ウォーターマーク内に到着した重複レコードの削除
+  streaming_df = streaming_df.withWatermark("eventTime", "10 minutes").dropDuplicatesWithinWatermark(["id"])
+  ```
+
+#### Slowly Changing Dimension
+| 特徴    | SCDタイプ1        | SCDタイプ2 |
+| ------- | ----- | --- |
+| 変更履歴       | 保持しない        | すべて保持する     |
+| データ更新     | 既存レコードを上書き      | 新しいレコードを追加、過去レコードは有効期限付きで保持 |
+| 実装    | 比較的簡単        | 複雑       |
+- Type-2 SCDの処理コード
+  - 処理関数
+    ```python
+    def type2_upsert(microBatchDF, batch):
+        microBatchDF.createOrReplaceTempView("updates")
+
+        sql_query = """
+            MERGE INTO books_silver
+            USING (
+                SELECT updates.book_id as merge_key, updates.*
+                FROM updates
+
+                UNION ALL
+
+                SELECT NULL as merge_key, updates.*
+                FROM updates
+                JOIN books_silver ON updates.book_id = books_silver.book_id
+                WHERE books_silver.current = true AND updates.price <> books_silver.price
+              ) staged_updates
+            ON books_silver.book_id = merge_key
+            WHEN MATCHED AND books_silver.current = true AND books_silver.price <> staged_updates.price THEN
+              UPDATE SET current = false, end_date = staged_updates.updated
+            WHEN NOT MATCHED THEN
+            INSERT (book_id, title, author, price, current, effective_date, end_date)
+              VALUES (staged_updates.book_id, staged_updates.title, staged_updates.author, staged_updates.price, true, staged_updates.updated, NULL)
+        """
+
+        microBatchDF.sparkSession.sql(sql_query)
+    ```
+  - 処理実行
+    ```python
+    def process_books():
+        schema = "book_id STRING, title STRING, author STRING, price DOUBLE, updated TIMESTAMP"
+
+        query = (spark.readStream
+                        .table("bronze")
+                        .filter("topic = 'books'")
+                        .select(F.from_json(F.col("value").cast("string"), schema).alias("v"))
+                        .select("v.*")
+                    .writeStream
+                        .foreachBatch(type2_upsert)
+                        .option("checkpointLocation", "dbfs:/mnt/demo_pro/checkpoints/books_silver")
+                        .trigger(availableNow=True)
+                        .start()
+                )
+
+        query.awaitTermination()
+
+    process_books()
+    ```
 
 - DLTでは通常、CDC（Change Data Capture）やインクリメンタル処理を活用して効率的に更新
 - Full Refresh Allを指定すると、すべてのデータで再計算を実施
@@ -728,24 +857,100 @@ rssFullText = false
   - maxFilesPerTrigger (デフォルト 1000)：各マイクロバッチで処理されるファイル数の上限
   - maxBytesPerTrigger (デフォルト 1000)：各マイクロバッチで処理されるデータ量のおおよその最大値
 
-- MERGE INTOとAPPLY CHANGES INTOの違い
-  | 比較項目       | MERGE INTO                                    | APPLY CHANGES INTO               |
-  | -------------- | --------------------------------------------- | -------------------------------- |
-  | 用途           | 汎用的なデータ更新・マージ                    | CDC データの適用（**DLT専用**）  |
-  | 処理対象       | 任意のデータセット                            | 変更データストリーム             |
-  | 実行環境       | Delta Lake全般                                | **Delta Live Tables（DLT）のみ** |
-  | 制御性         | 条件ごとに細かく定義可能                      | シンプルな CDC 適用              |
-  | コードの簡潔さ | やや長くなる                                  | 短く簡単                         |
-  | カスタマイズ性 | 高い（UPDATE, INSERT, DELETE の条件指定可能） | 低い（基本的にSCD Type 1のみ）   |
+#### MERGE INTOとAPPLY CHANGES INTOの違い
+| 比較項目       | MERGE INTO                                    | APPLY CHANGES INTO               |
+| -------------- | --------------------------------------------- | -------------------------------- |
+| 用途           | 汎用的なデータ更新・マージ                    | CDC データの適用（**DLT専用**）  |
+| 処理対象       | 任意のデータセット                            | 変更データストリーム             |
+| 実行環境       | Delta Lake全般                                | **Delta Live Tables（DLT）のみ** |
+| 制御性         | 条件ごとに細かく定義可能                      | シンプルな CDC 適用              |
+| コードの簡潔さ | やや長くなる                                  | 短く簡単                         |
+| カスタマイズ性 | 高い（UPDATE, INSERT, DELETE の条件指定可能） | 低い（基本的にSCD Type 1のみ）   |
 
-- foreachBatch
-  - ストリーミングクエリのすべてのマイクロバッチの出力データにバッチ関数を適用
-  - foreachBatch で使用される関数は、以下 2 つのパラメーターを受け取る
-    - マイクロバッチの出力データの DataFrame
-    - マイクロバッチの ID
-  - ストリーミングクエリの出力を複数の場所に書き込む必要がある場合、foreachBatch を使用して複数のシンクに書き込むと、ストリーミング書き込みの実行がシリアル化され、各マイクロバッチの待機時間が長くなる可能性があるため、最適な並列化とスループットのために、複数の構造化ストリーミングライターの使用が推奨される
+#### foreachBatch
+- ストリーミングクエリのすべてのマイクロバッチの出力データにバッチ関数を適用
+- foreachBatch で使用される関数は、以下 2 つのパラメーターを受け取る
+  - マイクロバッチの出力データの DataFrame
+  - マイクロバッチの ID
+- ストリーミングクエリの出力を複数の場所に書き込む必要がある場合、foreachBatch を使用して複数のシンクに書き込むと、ストリーミング書き込みの実行がシリアル化され、各マイクロバッチの待機時間が長くなる可能性があるため、最適な並列化とスループットのために、複数の構造化ストリーミングライターの使用が推奨される
 
-- CDCのコード
+#### CDCのコード
+- Static
+  ```python
+  customers_df = (spark.table("bronze")
+                  .filter("topic = 'customers'")
+                  .select(F.from_json(F.col("value").cast("string"), schema).alias("v"))
+                  .select("v.*")
+                  .filter(F.col("row_status").isin(["insert", "update"])))
+
+  from pyspark.sql.window import Window
+
+  window = Window.partitionBy("customer_id").orderBy(F.col("row_time").desc())
+
+  ranked_df = (customers_df.withColumn("rank", F.rank().over(window))
+                            .filter("rank == 1")
+                            .drop("rank"))
+  ```
+
+- Stream
+  - 間違い
+    - ストリーミング DataFrame では、時間ベースの順序付けを含んでいるかに関わらず、非集計ウィンドウ関数（F.rank()、F.row_number() など）はサポートされていない
+    ```python
+    # ストリーミングDataFramesでは非時間ベースのウィンドウ操作はサポートされていないため, 例外が発生する
+    ranked_df = (spark.readStream
+                      .table("bronze")
+                      .filter("topic = 'customers'")
+                      .select(F.from_json(F.col("value").cast("string"), schema).alias("v"))
+                      .select("v.*")
+                      .filter(F.col("row_status").isin(["insert", "update"]))
+                      .withColumn("rank", F.rank().over(window))
+                      .filter("rank == 1")
+                      .drop("rank")
+                )
+    ```
+
+  - 正解
+    ```python
+    from pyspark.sql.window import Window
+
+    def batch_upsert(microBatchDF, batchId):
+        window = Window.partitionBy("customer_id").orderBy(F.col("row_time").desc())
+
+        (microBatchDF.filter(F.col("row_status").isin(["insert", "update"]))
+                    .withColumn("rank", F.rank().over(window))
+                    .filter("rank == 1")
+                    .drop("rank")
+                    .createOrReplaceTempView("ranked_updates"))
+
+        query = """
+            MERGE INTO customers_silver c
+            USING ranked_updates r
+            ON c.customer_id=r.customer_id
+                WHEN MATCHED AND c.row_time < r.row_time
+                  THEN UPDATE SET *
+                WHEN NOT MATCHED
+                  THEN INSERT *
+        """
+
+    microBatchDF.sparkSession.sql(query)
+
+    query = (spark.readStream
+                      .table("bronze")
+                      .filter("topic = 'customers'")
+                      .select(F.from_json(F.col("value").cast("string"), schema).alias("v"))
+                      .select("v.*")
+                      .join(F.broadcast(df_country_lookup), F.col("country_code") == F.col("code") , "inner")
+                  .writeStream
+                      .foreachBatch(batch_upsert)
+                      .option("checkpointLocation", "dbfs:/mnt/demo_pro/checkpoints/customers_silver")
+                      .trigger(availableNow=True)
+                      .start()
+              )
+
+    query.awaitTermination()
+    ```
+
+- 本番運用を想定した一連の流れ
   ```python
   catalog = "jobs"
   schema = "myschema"
@@ -801,6 +1006,7 @@ rssFullText = false
   WHERE DELETED_AT < now() - INTERVAL 1 DAY
   ```
 
+#### その他のコード
 - ソースデータの確認
   ```sql
   /* Discover your data in a volume */
@@ -825,32 +1031,6 @@ rssFullText = false
   ```sql
   REFRESH STREAMING TABLE my_bronze_table FULL
   ```
-- Kafkaからデータを取り込むようにストリーミングテーブルを構成
-  - Bronzeテーブル
-    ```python
-    import dlt
-
-    @dlt.table
-    def kafka_raw():
-      return (
-        spark.readStream
-          .format("kafka")
-          .option("kafka.bootstrap.servers", "<server:ip>")
-          .option("subscribe", "topic1")
-          .option("startingOffsets", "latest")
-          .load()
-      )
-    ```
-  - Silverテーブル
-    ```sql
-    CREATE OR REFRESH STREAMING TABLE streaming_silver_table
-    AS SELECT
-      *
-    FROM
-      STREAM(kafka_raw)
-    WHERE ...
-    ```
-
 - ストリーミングレコードの重複排除
   - 次の例では、データは clickTimestamp順に処理され、重複する userId 列と clickAdId 列を含むレコードが 5 秒以内に到着した場合、重複したレコードは削除される
   - コード
@@ -862,170 +1042,236 @@ rssFullText = false
         .withWatermark("clickTimestamp", "5 seconds")
         .dropDuplicatesWithinWatermark(["userId", "clickAdId"]))
     ```
+  - 一連の流れ
+    - Stream読込み
+      - 読み込んだマイクロバッチごとに重複排除を実行
+      ```python
+      deduped_df = (spark.readStream
+                        .table("bronze")
+                        .filter("topic = 'orders'")
+                        .select(F.from_json(F.col("value").cast("string"), json_schema).alias("v"))
+                        .select("v.*")
+                        .withWatermark("order_timestamp", "30 seconds")
+                        .dropDuplicates(["order_id", "order_timestamp"]))
+      ```
+    - マイクロバッチ関数の作成
+      - 読み込むマイクロバッチ内での重複削除は、ストリーム読込みで実施済みだが、以前のマイクロバッチで取り込み済みのIDがある可能性があるため、新規IDのデータのみインサート
+      ```python
+      def upsert_data(microBatchDF, batch):
+          microBatchDF.createOrReplaceTempView("orders_microbatch")
 
-- 本番運用の考慮事項
-  - display や count などの結果を返す不要なコードをノートブックから削除
-  - 常にジョブコンピュートを使用して、ストリームをジョブとしてスケジュール
-  - コンピュートの自動スケーリングを有効にしない
-  - Continuousモードを使用してジョブをスケジュール
+          sql_query = """
+            MERGE INTO orders_silver a
+            USING orders_microbatch b
+            ON a.order_id=b.order_id AND a.order_timestamp=b.order_timestamp
+            WHEN NOT MATCHED THEN INSERT *
+          """
 
-- RocksDBの活用
-  - チェックポイント管理に RocksDB を使用（各クエリには異なるチェックポイントが必要であり、複数のクエリで同じ場所を共有しない）
-  - RocksDB ベースの状態管理を有効にするには、SparkSession をストリーミングクエリを開始する前に以下のコマンドを実行
+          microBatchDF.sparkSession.sql(sql_query)
+          #microBatchDF._jdf.sparkSession().sql(sql_query)
+      ```
+    - Stream書出し
+      - 読み込んだマイクロバッチごとに関数を適用
+      ```python
+      query = (deduped_df.writeStream
+                        .foreachBatch(upsert_data)
+                        .option("checkpointLocation", "dbfs:/mnt/demo_pro/checkpoints/orders_silver")
+                        .trigger(availableNow=True)
+                        .start())
+
+      query.awaitTermination()
+      ```
+
+#### Kafkaからデータを取り込むようにストリーミングテーブルを構成
+- Bronzeテーブル
+  ```python
+  import dlt
+
+  @dlt.table
+  def kafka_raw():
+    return (
+      spark.readStream
+        .format("kafka")
+        .option("kafka.bootstrap.servers", "<server:ip>")
+        .option("subscribe", "topic1")
+        .option("startingOffsets", "latest")
+        .load()
+    )
+  ```
+- Silverテーブル
+  ```sql
+  CREATE OR REFRESH STREAMING TABLE streaming_silver_table
+  AS SELECT
+    *
+  FROM
+    STREAM(kafka_raw)
+  WHERE ...
+  ```
+
+#### 本番運用の考慮事項
+- display や count などの結果を返す不要なコードをノートブックから削除
+- 常にジョブコンピュートを使用して、ストリームをジョブとしてスケジュール
+- コンピュートの自動スケーリングを有効にしない
+- Continuousモードを使用してジョブをスケジュール
+
+#### RocksDBの活用
+- チェックポイント管理に RocksDB を使用（各クエリには異なるチェックポイントが必要であり、複数のクエリで同じ場所を共有しない）
+- RocksDB ベースの状態管理を有効にするには、SparkSession をストリーミングクエリを開始する前に以下のコマンドを実行
+  ```scala
+  spark.conf.set(
+  "spark.sql.streaming.stateStore.providerClass",
+  "com.databricks.sql.streaming.state.RocksDBStateStoreProvider")
+  ```
+- RocksDB 状態ストアメトリクス
+  - ストリーミングデータ処理において、特に RocksDB 状態ストア（各状態演算子（state operator）が管理する、状態管理のために使用されるデータベース）を使用している場合に収集される重要なメトリクス
+  - 状態管理の監視、パフォーマンスやリソースの監視と最適化、デバッグとトラブルシューティングなどのために使用される
+  - メトリクスの種類
+    - インスタンス固有のメトリクス：パーティションID + ストア名 でラベル付けされる特定の状態ストアインスタンスに関連した集計値
+    - 集計メトリクス：ジョブ内のすべての状態演算子の動作の合計として集計され、ジョブ全体のパフォーマンス把握に有用
+- 変更履歴 (changelog) のチェックポイントを有効化
+  - 従来の方式との違い
+    - 従来: RocksDB状態ストアのスナップショット全体をチェックポイント処理中に耐久性のあるストレージ（通常はクラウドストレージ）にアップロード
+    - 新方式: 最後のチェックポイント以降に変更されたレコードのみを書き込む増分方式
+  - メリット
+    - チェックポイント処理の期間短縮: 変更されたデータのみを書き込むため処理が高速
+    - エンドツーエンドの待機時間削減: ストリーミングクエリのレイテンシが改善
+    - ストレージ効率の向上: 変更データのみを保存するため、保存容量が削減]
+    - リソース使用量の削減: データ転送量とCPU/メモリ使用量が減少
+  - 設定方法
+    ```scala
+    spark.conf.set("spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled", "true")
+    ```
+- 非同期チェックポイント：ジョブの状態情報を非同期で保存（デフォルトの in-memory 状態ストアの実装ではサポート対象外）
+  - 状態チェックポイント処理が完了するのを待たずに、前のマイクロバッチの計算が完了するとすぐに、次のマイクロバッチの処理を開始
+  - 同期チェックポイントに比べて、レイテンシの短縮が期待できる（状態チェックポイントのレイテンシは、バッチ実行の全体的なレイテンシの主な要因の 1 つ）
+  - 設定方法
     ```scala
     spark.conf.set(
-    "spark.sql.streaming.stateStore.providerClass",
-    "com.databricks.sql.streaming.state.RocksDBStateStoreProvider")
-    ```
-  - RocksDB 状態ストアメトリクス
-    - ストリーミングデータ処理において、特に RocksDB 状態ストア（各状態演算子（state operator）が管理する、状態管理のために使用されるデータベース）を使用している場合に収集される重要なメトリクス
-    - 状態管理の監視、パフォーマンスやリソースの監視と最適化、デバッグとトラブルシューティングなどのために使用される
-    - メトリクスの種類
-      - インスタンス固有のメトリクス：パーティションID + ストア名 でラベル付けされる特定の状態ストアインスタンスに関連した集計値
-      - 集計メトリクス：ジョブ内のすべての状態演算子の動作の合計として集計され、ジョブ全体のパフォーマンス把握に有用
-  - 変更履歴 (changelog) のチェックポイントを有効化
-    - 従来の方式との違い
-      - 従来: RocksDB状態ストアのスナップショット全体をチェックポイント処理中に耐久性のあるストレージ（通常はクラウドストレージ）にアップロード
-      - 新方式: 最後のチェックポイント以降に変更されたレコードのみを書き込む増分方式
-    - メリット
-      - チェックポイント処理の期間短縮: 変更されたデータのみを書き込むため処理が高速
-      - エンドツーエンドの待機時間削減: ストリーミングクエリのレイテンシが改善
-      - ストレージ効率の向上: 変更データのみを保存するため、保存容量が削減]
-      - リソース使用量の削減: データ転送量とCPU/メモリ使用量が減少
-    - 設定方法
-      ```scala
-      spark.conf.set("spark.sql.streaming.stateStore.rocksdb.changelogCheckpointing.enabled", "true")
-      ```
-  - 非同期チェックポイント：ジョブの状態情報を非同期で保存（デフォルトの in-memory 状態ストアの実装ではサポート対象外）
-    - 状態チェックポイント処理が完了するのを待たずに、前のマイクロバッチの計算が完了するとすぐに、次のマイクロバッチの処理を開始
-    - 同期チェックポイントに比べて、レイテンシの短縮が期待できる（状態チェックポイントのレイテンシは、バッチ実行の全体的なレイテンシの主な要因の 1 つ）
-    - 設定方法
-      ```scala
-      spark.conf.set(
-        "spark.databricks.streaming.statefulOperator.asyncCheckpoint.enabled",
-        "true"
-      )
-
-      spark.conf.set(
-        "spark.sql.streaming.stateStore.providerClass",
-        "com.databricks.sql.streaming.state.RocksDBStateStoreProvider"
-      )
-      ```
-  - 非同期プログレス追跡：構造化ストリーミングジョブの進捗状況を非同期で追跡
-    - ジョブの進捗を監視し、リアルタイムで進捗情報を収集
-    - ストリーミングクエリの進行状況追跡をバックグラウンドで実行することで、メインの処理スレッドへの影響を最小限に抑える
-    - 設定方法
-      ```scala
-      spark.conf.set("spark.sql.streaming.asyncProgressTracking", "true")
-
-      // stream 書出し
-      val query = stream.writeStream
-        .format("kafka")
-        .option("topic", "out")
-        .option("checkpointLocation", "/tmp/checkpoint")
-        .option("asyncProgressTrackingEnabled", "true")
-        .option("asyncProgressTrackingCheckpointIntervalMs", 0)
-        .start()
-      ```
-
-- ストリームの監視
-  - writeStream コードに .queryName(<query-name>) を追加してストリームに一意のクエリ名を付けると、 Spark UI内のどのメトリクスがどのストリームに属しているかを区別しやすくなる
-  - Apache Spark のストリーミングクエリリスナーインターフェースを使用して、ストリーミングメトリクスを外部サービスにプッシュ可能
-
-- ストリーミングの制限
-  - Apache Spark の連続処理モード（.trigger(continuous="X second")）はサポート対象外
-
-- ストリームソースとしてのビュー
-  - ストリームできるのは Delta テーブル形式のビューのみ
-  - Unity Catalog へのビューの登録が必要
-  - ソース ビューでサポートされている操作は、SELECT, WHERE, UNION ALL のみ
-
-- ストリーミング開始時点の指定
-  - startingVersion もしくは startingTimestamp を指定し、ストリームの開始時点を指定可能
-  - startingVersion が設定されていない場合（推奨）、その時点でのテーブルの完全なスナップショットを含む使用可能な最新バージョンからストリーム開始
-  - 両方のオプションを同時に設定することはできない
-
-- DLTの特徴
-  - 外部テーブルへの書き込みや、外部ファイルストレージやデータベーステーブルを操作する条件を組み込む処理はできない
-  - 制約を満たさないレコードを追加できない従来のデータベースの CHECK 制約とは異なり、期待値はデータ品質要件を満たさないデータを処理するときの柔軟性を提供
-  - Databricks ワークスペースでは、並列パイプライン更新の上限数は 100 個
-  - DLT パイプラインから発行されたマテリアライズドビュー とストリーミングテーブル (Databricks SQLによって作成されたものを含む) にアクセスできるのは、 Databricks クライアントとアプリケーションのみ
-  - タイムトラベルはストリーミングテーブルでのみサポートされ、マテリアライズドビューではサポート対象外
-  - パイプライン実行には、クラスター作成許可が必要
-
-- DLTパイプラインの例
-  - Python
-    - @dlt.table デコレーターは、関数によって返された結果に基づいてマテリアライズドビューまたはストリーミングテーブルの作成を DLT に指示
-    ```python
-    import dlt
-    from pyspark.sql.functions import col
-
-    # orders ストリーミングテーブルの作成
-    @dlt.table()
-    @dlt.expect_or_drop("valid_date", "order_datetime IS NOT NULL AND length(order_datetime) > 0")
-    def orders():
-      return (spark.readStream
-        .format("cloudFiles")
-        .option("cloudFiles.format", "json")
-        .load("/databricks-datasets/retail-org/sales_orders")
-      )
-
-    # customers マテリアライズドビューの作成
-    @dlt.table()
-    def customers():
-        return spark.read.format("csv").option("header", True).load("/databricks-datasets/retail-org/customers")
-
-    # customer_orders マテリアライズドビューの作成
-    @dlt.table()
-    def customer_orders():
-      return (spark.read.table("orders")
-        .join(spark.read.table("customers"), "customer_id")
-          .select("customer_id",
-            "order_number",
-            "state",
-            col("order_datetime").cast("int").cast("timestamp").cast("date").alias("order_date"),
-          )
-      )
-
-    # daily_orders_by_state マテリアライズドビューの作成
-    @dlt.table()
-    def daily_orders_by_state():
-        return (spark.read.table("customer_orders")
-          .groupBy("state", "order_date")
-          .count().withColumnRenamed("count", "order_count")
-        )
-    ```
-  - SQL
-    ```sql
-    -- orders ストリーミングテーブルの作成
-    CREATE OR REFRESH STREAMING TABLE orders(
-      CONSTRAINT valid_date
-      EXPECT (order_datetime IS NOT NULL AND length(order_datetime) > 0)
-      ON VIOLATION DROP ROW
+      "spark.databricks.streaming.statefulOperator.asyncCheckpoint.enabled",
+      "true"
     )
-    AS SELECT * FROM STREAM read_files("/databricks-datasets/retail-org/sales_orders");
 
-    -- customers マテリアライズドビューの作成
-    CREATE OR REFRESH MATERIALIZED VIEW customers
-    AS SELECT * FROM read_files("/databricks-datasets/retail-org/customers");
-
-    -- customer_orders マテリアライズドビューの作成
-    CREATE OR REFRESH MATERIALIZED VIEW customer_orders
-    AS SELECT
-      c.customer_id,
-      o.order_number,
-      c.state,
-      date(timestamp(int(o.order_datetime))) order_date
-    FROM orders o
-    INNER JOIN customers c
-    ON o.customer_id = c.customer_id;
-
-    -- daily_orders_by_state マテリアライズドビューの作成
-    CREATE OR REFRESH MATERIALIZED VIEW daily_orders_by_state
-    AS SELECT state, order_date, count(*) order_count
-    FROM customer_orders
-    GROUP BY state, order_date;
+    spark.conf.set(
+      "spark.sql.streaming.stateStore.providerClass",
+      "com.databricks.sql.streaming.state.RocksDBStateStoreProvider"
+    )
     ```
+- 非同期プログレス追跡：構造化ストリーミングジョブの進捗状況を非同期で追跡
+  - ジョブの進捗を監視し、リアルタイムで進捗情報を収集
+  - ストリーミングクエリの進行状況追跡をバックグラウンドで実行することで、メインの処理スレッドへの影響を最小限に抑える
+  - 設定方法
+    ```scala
+    spark.conf.set("spark.sql.streaming.asyncProgressTracking", "true")
+
+    // stream 書出し
+    val query = stream.writeStream
+      .format("kafka")
+      .option("topic", "out")
+      .option("checkpointLocation", "/tmp/checkpoint")
+      .option("asyncProgressTrackingEnabled", "true")
+      .option("asyncProgressTrackingCheckpointIntervalMs", 0)
+      .start()
+    ```
+
+#### ストリームの監視
+- writeStream コードに .queryName(<query-name>) を追加してストリームに一意のクエリ名を付けると、 Spark UI内のどのメトリクスがどのストリームに属しているかを区別しやすくなる
+- Apache Spark のストリーミングクエリリスナーインターフェースを使用して、ストリーミングメトリクスを外部サービスにプッシュ可能
+
+#### ストリーミングの制限
+- Apache Spark の連続処理モード（.trigger(continuous="X second")）はサポート対象外
+
+#### ストリームソースとしてのビュー
+- ストリームできるのは Delta テーブル形式のビューのみ
+- Unity Catalog へのビューの登録が必要
+- ソース ビューでサポートされている操作は、SELECT, WHERE, UNION ALL のみ
+
+#### ストリーミング開始時点の指定
+- startingVersion もしくは startingTimestamp を指定し、ストリームの開始時点を指定可能
+- startingVersion が設定されていない場合（推奨）、その時点でのテーブルの完全なスナップショットを含む使用可能な最新バージョンからストリーム開始
+- 両方のオプションを同時に設定することはできない
+
+### DLT
+#### DLTの特徴
+- 外部テーブルへの書き込みや、外部ファイルストレージやデータベーステーブルを操作する条件を組み込む処理はできない
+- 制約を満たさないレコードを追加できない従来のデータベースの CHECK 制約とは異なり、期待値はデータ品質要件を満たさないデータを処理するときの柔軟性を提供
+- Databricks ワークスペースでは、並列パイプライン更新の上限数は 100 個
+- DLT パイプラインから発行されたマテリアライズドビュー とストリーミングテーブル (Databricks SQLによって作成されたものを含む) にアクセスできるのは、 Databricks クライアントとアプリケーションのみ
+- タイムトラベルはストリーミングテーブルでのみサポートされ、マテリアライズドビューではサポート対象外
+- パイプライン実行には、クラスター作成許可が必要
+
+#### DLTパイプラインの例
+- Python
+  - @dlt.table デコレーターは、関数によって返された結果に基づいてマテリアライズドビューまたはストリーミングテーブルの作成を DLT に指示
+  ```python
+  import dlt
+  from pyspark.sql.functions import col
+
+  # orders ストリーミングテーブルの作成
+  @dlt.table()
+  @dlt.expect_or_drop("valid_date", "order_datetime IS NOT NULL AND length(order_datetime) > 0")
+  def orders():
+    return (spark.readStream
+      .format("cloudFiles")
+      .option("cloudFiles.format", "json")
+      .load("/databricks-datasets/retail-org/sales_orders")
+    )
+
+  # customers マテリアライズドビューの作成
+  @dlt.table()
+  def customers():
+      return spark.read.format("csv").option("header", True).load("/databricks-datasets/retail-org/customers")
+
+  # customer_orders マテリアライズドビューの作成
+  @dlt.table()
+  def customer_orders():
+    return (spark.read.table("orders")
+      .join(spark.read.table("customers"), "customer_id")
+        .select("customer_id",
+          "order_number",
+          "state",
+          col("order_datetime").cast("int").cast("timestamp").cast("date").alias("order_date"),
+        )
+    )
+
+  # daily_orders_by_state マテリアライズドビューの作成
+  @dlt.table()
+  def daily_orders_by_state():
+      return (spark.read.table("customer_orders")
+        .groupBy("state", "order_date")
+        .count().withColumnRenamed("count", "order_count")
+      )
+  ```
+- SQL
+  ```sql
+  -- orders ストリーミングテーブルの作成
+  CREATE OR REFRESH STREAMING TABLE orders(
+    CONSTRAINT valid_date
+    EXPECT (order_datetime IS NOT NULL AND length(order_datetime) > 0)
+    ON VIOLATION DROP ROW
+  )
+  AS SELECT * FROM STREAM read_files("/databricks-datasets/retail-org/sales_orders");
+
+  -- customers マテリアライズドビューの作成
+  CREATE OR REFRESH MATERIALIZED VIEW customers
+  AS SELECT * FROM read_files("/databricks-datasets/retail-org/customers");
+
+  -- customer_orders マテリアライズドビューの作成
+  CREATE OR REFRESH MATERIALIZED VIEW customer_orders
+  AS SELECT
+    c.customer_id,
+    o.order_number,
+    c.state,
+    date(timestamp(int(o.order_datetime))) order_date
+  FROM orders o
+  INNER JOIN customers c
+  ON o.customer_id = c.customer_id;
+
+  -- daily_orders_by_state マテリアライズドビューの作成
+  CREATE OR REFRESH MATERIALIZED VIEW daily_orders_by_state
+  AS SELECT state, order_date, count(*) order_count
+  FROM customer_orders
+  GROUP BY state, order_date;
+  ```
 - DLT パイプラインで MLflow モデルを使用
   ```python
   %pip install mlflow
@@ -1045,264 +1291,265 @@ rssFullText = false
       .withColumn("prediction", loaded_model_udf(struct(features))))
   ```
 
-- DLTシンク
-  - DLT シンクを使用すると、 Apache Kafka や Azure Event Hubs などのイベント ストリーミング サービスや、 Unity Catalog または Hive metastoreによって管理される外部テーブルなどのターゲットに変換されたデータを書き込むことが可能（DLT シンクの機能登場以前は、DLT パイプラインで作成されたストリーミングテーブルとマテリアライズドビューは、 Databricks 管理 Delta テーブルにのみで永続化可能だった）
-  - 一例として、Apache Kafka トピックなどのメッセージバスからデータを読み取り、データを低レイテンシで処理して、処理されたレコードをメッセージバスに書き戻しが可能となり、クラウドストレージからの書き込みや読み取りを行わないことで、レイテンシーを短縮できる
-  - シンクへの書き込みに使用できるのは append_flow のみ（apply_changesなどの他のフローはサポート対象外）
-  - 完全更新を実行しても、シンク内の以前のコンピュート結果データはクリーンアップされない
+#### DLTシンク
+- DLT シンクを使用すると、 Apache Kafka や Azure Event Hubs などのイベント ストリーミング サービスや、 Unity Catalog または Hive metastoreによって管理される外部テーブルなどのターゲットに変換されたデータを書き込むことが可能（DLT シンクの機能登場以前は、DLT パイプラインで作成されたストリーミングテーブルとマテリアライズドビューは、 Databricks 管理 Delta テーブルにのみで永続化可能だった）
+- 一例として、Apache Kafka トピックなどのメッセージバスからデータを読み取り、データを低レイテンシで処理して、処理されたレコードをメッセージバスに書き戻しが可能となり、クラウドストレージからの書き込みや読み取りを行わないことで、レイテンシーを短縮できる
+- シンクへの書き込みに使用できるのは append_flow のみ（apply_changesなどの他のフローはサポート対象外）
+- 完全更新を実行しても、シンク内の以前のコンピュート結果データはクリーンアップされない
 
-- EXPECTの使用法
-  - フローチャート
-  - 例
-    - Python
-      ```python
-      # Simple constraint
-      @dlt.expect("non_negative_price", "price >= 0")
+#### EXPECTの使用法
+- フローチャート
+- 例
+  - Python
+    ```python
+    # Simple constraint
+    @dlt.expect("non_negative_price", "price >= 0")
 
-      # SQL functions
-      @dlt.expect("valid_date", "year(transaction_date) >= 2020")
+    # SQL functions
+    @dlt.expect("valid_date", "year(transaction_date) >= 2020")
 
-      # CASE statements
-      @dlt.expect("valid_order_status", """
-        CASE
-          WHEN type = 'ORDER' THEN status IN ('PENDING', 'COMPLETED', 'CANCELLED')
-          WHEN type = 'REFUND' THEN status IN ('PENDING', 'APPROVED', 'REJECTED')
-          ELSE false
-        END
-      """)
+    # CASE statements
+    @dlt.expect("valid_order_status", """
+      CASE
+        WHEN type = 'ORDER' THEN status IN ('PENDING', 'COMPLETED', 'CANCELLED')
+        WHEN type = 'REFUND' THEN status IN ('PENDING', 'APPROVED', 'REJECTED')
+        ELSE false
+      END
+    """)
 
-      # Multiple constraints
-      @dlt.expect("non_negative_price", "price >= 0")
-      @dlt.expect("valid_purchase_date", "date <= current_date()")
+    # Multiple constraints
+    @dlt.expect("non_negative_price", "price >= 0")
+    @dlt.expect("valid_purchase_date", "date <= current_date()")
 
-      # Complex business logic
-      @dlt.expect(
-        "valid_subscription_dates",
-        """start_date <= end_date
-          AND end_date <= current_date()
-          AND start_date >= '2020-01-01'"""
-      )
-
-      # Complex boolean logic
-      @dlt.expect("valid_order_state", """
-        (status = 'ACTIVE' AND balance > 0)
-        OR (status = 'PENDING' AND created_date > current_date() - INTERVAL 7 DAYS)
-      """)
-
-      # 無効なレコードを削除
-      @dlt.expect_or_drop("valid_current_page", "current_page_id IS NOT NULL AND current_page_title IS NOT NULL")
-
-      # 無効なレコードで失敗
-      @dlt.expect_or_fail("valid_count", "count > 0")
-
-      # 複数の制約（Pythonでのみ使用可）
-      valid_pages = {"valid_count": "count > 0", "valid_current_page": "current_page_id IS NOT NULL AND current_page_title IS NOT NULL"}
-
-      @dlt.table
-      @dlt.expect_all(valid_pages)
-      def raw_data():
-        # Create a raw dataset
-
-      @dlt.table
-      @dlt.expect_all_or_drop(valid_pages)
-      def prepared_data():
-        # Create a cleaned and prepared dataset
-
-      @dlt.table
-      @dlt.expect_all_or_fail(valid_pages)
-      def customer_facing_data():
-        # Create cleaned and prepared to share the dataset
-
-      # 行数の検証
-      @dlt.view(
-        name="count_verification",
-        comment="Validates equal row counts between tables"
-      )
-      @dlt.expect_or_fail("no_rows_dropped", "a_count == b_count")
-      def validate_row_counts():
-        return spark.sql("""
-          SELECT * FROM
-            (SELECT COUNT(*) AS a_count FROM table_a),
-            (SELECT COUNT(*) AS b_count FROM table_b)""")
-
-      # 範囲ベースの検証パターン
-      @dlt.view
-      def stats_validation_view():
-        # Calculate statistical bounds from historical data
-        bounds = spark.sql("""
-          SELECT
-            avg(amount) - 3 * stddev(amount) as lower_bound,
-            avg(amount) + 3 * stddev(amount) as upper_bound
-          FROM historical_stats
-          WHERE
-            date >= CURRENT_DATE() - INTERVAL 30 DAYS
-        """)
-
-        # Join with new data and apply bounds
-        return spark.read.table("new_data").crossJoin(bounds)
-
-      @dlt.table
-      @dlt.expect_or_drop(
-        "within_statistical_range",
-        "amount BETWEEN lower_bound AND upper_bound"
-      )
-      def validated_amounts():
-        return dlt.read("stats_validation_view")
-
-      # 無効なレコードを隔離
-      import dlt
-      from pyspark.sql.functions import expr
-
-      rules = {
-        "valid_pickup_zip": "(pickup_zip IS NOT NULL)",
-        "valid_dropoff_zip": "(dropoff_zip IS NOT NULL)",
-      }
-      quarantine_rules = "NOT({0})".format(" AND ".join(rules.values()))
-
-      @dlt.view
-      def raw_trips_data():
-        return spark.readStream.table("samples.nyctaxi.trips")
-
-      @dlt.table(
-        temporary=True,
-        partition_cols=["is_quarantined"],
-      )
-      @dlt.expect_all(rules)
-      def trips_data_quarantine():
-        return (
-          dlt.readStream("raw_trips_data").withColumn("is_quarantined", expr(quarantine_rules))
-        )
-
-      @dlt.view
-      def valid_trips_data():
-        return dlt.read("trips_data_quarantine").filter("is_quarantined=false")
-
-      @dlt.view
-      def invalid_trips_data():
-        return dlt.read("trips_data_quarantine").filter("is_quarantined=true")
-      ```
-    - SQL
-      ```sql
-      -- Simple constraint
-      CONSTRAINT non_negative_price EXPECT (price >= 0)
-
-      -- SQL functions
-      CONSTRAINT valid_date EXPECT (year(transaction_date) >= 2020)
-
-      -- CASE statements
-      CONSTRAINT valid_order_status EXPECT (
-        CASE
-          WHEN type = 'ORDER' THEN status IN ('PENDING', 'COMPLETED', 'CANCELLED')
-          WHEN type = 'REFUND' THEN status IN ('PENDING', 'APPROVED', 'REJECTED')
-          ELSE false
-        END
-      )
-
-      -- Multiple constraints
-      CONSTRAINT non_negative_price EXPECT (price >= 0)
-      CONSTRAINT valid_purchase_date EXPECT (date <= current_date())
-
-      -- Complex business logic
-      CONSTRAINT valid_subscription_dates EXPECT (
-        start_date <= end_date
+    # Complex business logic
+    @dlt.expect(
+      "valid_subscription_dates",
+      """start_date <= end_date
         AND end_date <= current_date()
-        AND start_date >= '2020-01-01'
-      )
+        AND start_date >= '2020-01-01'"""
+    )
 
-      -- Complex boolean logic
-      CONSTRAINT valid_order_state EXPECT (
-        (status = 'ACTIVE' AND balance > 0)
-        OR (status = 'PENDING' AND created_date > current_date() - INTERVAL 7 DAYS)
-      )
+    # Complex boolean logic
+    @dlt.expect("valid_order_state", """
+      (status = 'ACTIVE' AND balance > 0)
+      OR (status = 'PENDING' AND created_date > current_date() - INTERVAL 7 DAYS)
+    """)
 
-      -- 無効なレコードを削除
-      CONSTRAINT valid_current_page EXPECT (current_page_id IS NOT NULL and current_page_title IS NOT NULL) ON VIOLATION DROP ROW
+    # 無効なレコードを削除
+    @dlt.expect_or_drop("valid_current_page", "current_page_id IS NOT NULL AND current_page_title IS NOT NULL")
 
-      -- 無効なレコードで失敗
-      CONSTRAINT valid_count EXPECT (count > 0) ON VIOLATION FAIL UPDATE
+    # 無効なレコードで失敗
+    @dlt.expect_or_fail("valid_count", "count > 0")
 
-      -- 行数の検証
-      CREATE OR REFRESH MATERIALIZED VIEW count_verification(
-        CONSTRAINT no_rows_dropped EXPECT (a_count == b_count)
-      ) AS SELECT * FROM
-        (SELECT COUNT(*) AS a_count FROM table_a),
-        (SELECT COUNT(*) AS b_count FROM table_b)
+    # 複数の制約（Pythonでのみ使用可）
+    valid_pages = {"valid_count": "count > 0", "valid_current_page": "current_page_id IS NOT NULL AND current_page_title IS NOT NULL"}
 
-      -- 範囲ベースの検証パターン
-      CREATE OR REFRESH MATERIALIZED VIEW stats_validation_view AS
-        WITH bounds AS (
-          SELECT
+    @dlt.table
+    @dlt.expect_all(valid_pages)
+    def raw_data():
+      # Create a raw dataset
+
+    @dlt.table
+    @dlt.expect_all_or_drop(valid_pages)
+    def prepared_data():
+      # Create a cleaned and prepared dataset
+
+    @dlt.table
+    @dlt.expect_all_or_fail(valid_pages)
+    def customer_facing_data():
+      # Create cleaned and prepared to share the dataset
+
+    # 行数の検証
+    @dlt.view(
+      name="count_verification",
+      comment="Validates equal row counts between tables"
+    )
+    @dlt.expect_or_fail("no_rows_dropped", "a_count == b_count")
+    def validate_row_counts():
+      return spark.sql("""
+        SELECT * FROM
+          (SELECT COUNT(*) AS a_count FROM table_a),
+          (SELECT COUNT(*) AS b_count FROM table_b)""")
+
+    # 範囲ベースの検証パターン
+    @dlt.view
+    def stats_validation_view():
+      # Calculate statistical bounds from historical data
+      bounds = spark.sql("""
+        SELECT
           avg(amount) - 3 * stddev(amount) as lower_bound,
           avg(amount) + 3 * stddev(amount) as upper_bound
-          FROM historical_stats
-          WHERE date >= CURRENT_DATE() - INTERVAL 30 DAYS
-        )
-        SELECT
-          new_data.*,
-          bounds.*
-        FROM new_data
-        CROSS JOIN bounds;
+        FROM historical_stats
+        WHERE
+          date >= CURRENT_DATE() - INTERVAL 30 DAYS
+      """)
 
-      CREATE OR REFRESH MATERIALIZED VIEW validated_amounts (
-        CONSTRAINT within_statistical_range EXPECT (amount BETWEEN lower_bound AND upper_bound)
+      # Join with new data and apply bounds
+      return spark.read.table("new_data").crossJoin(bounds)
+
+    @dlt.table
+    @dlt.expect_or_drop(
+      "within_statistical_range",
+      "amount BETWEEN lower_bound AND upper_bound"
+    )
+    def validated_amounts():
+      return dlt.read("stats_validation_view")
+
+    # 無効なレコードを隔離
+    import dlt
+    from pyspark.sql.functions import expr
+
+    rules = {
+      "valid_pickup_zip": "(pickup_zip IS NOT NULL)",
+      "valid_dropoff_zip": "(dropoff_zip IS NOT NULL)",
+    }
+    quarantine_rules = "NOT({0})".format(" AND ".join(rules.values()))
+
+    @dlt.view
+    def raw_trips_data():
+      return spark.readStream.table("samples.nyctaxi.trips")
+
+    @dlt.table(
+      temporary=True,
+      partition_cols=["is_quarantined"],
+    )
+    @dlt.expect_all(rules)
+    def trips_data_quarantine():
+      return (
+        dlt.readStream("raw_trips_data").withColumn("is_quarantined", expr(quarantine_rules))
       )
-      AS SELECT * FROM stats_validation_view;
 
-      -- 無効なレコードを隔離
-      CREATE TEMPORARY STREAMING LIVE VIEW raw_trips_data AS
-        SELECT * FROM STREAM(samples.nyctaxi.trips);
+    @dlt.view
+    def valid_trips_data():
+      return dlt.read("trips_data_quarantine").filter("is_quarantined=false")
 
-      CREATE OR REFRESH TEMPORARY STREAMING TABLE trips_data_quarantine(
-        -- Option 1 - merge all expectations to have a single name in the pipeline event log
-        CONSTRAINT quarantined_row EXPECT (pickup_zip IS NOT NULL OR dropoff_zip IS NOT NULL),
-        -- Option 2 - Keep the expectations separate, resulting in multiple entries under different names
-        CONSTRAINT invalid_pickup_zip EXPECT (pickup_zip IS NOT NULL),
-        CONSTRAINT invalid_dropoff_zip EXPECT (dropoff_zip IS NOT NULL)
-      )
-      PARTITIONED BY (is_quarantined)
-      AS
+    @dlt.view
+    def invalid_trips_data():
+      return dlt.read("trips_data_quarantine").filter("is_quarantined=true")
+    ```
+  - SQL
+    ```sql
+    -- Simple constraint
+    CONSTRAINT non_negative_price EXPECT (price >= 0)
+
+    -- SQL functions
+    CONSTRAINT valid_date EXPECT (year(transaction_date) >= 2020)
+
+    -- CASE statements
+    CONSTRAINT valid_order_status EXPECT (
+      CASE
+        WHEN type = 'ORDER' THEN status IN ('PENDING', 'COMPLETED', 'CANCELLED')
+        WHEN type = 'REFUND' THEN status IN ('PENDING', 'APPROVED', 'REJECTED')
+        ELSE false
+      END
+    )
+
+    -- Multiple constraints
+    CONSTRAINT non_negative_price EXPECT (price >= 0)
+    CONSTRAINT valid_purchase_date EXPECT (date <= current_date())
+
+    -- Complex business logic
+    CONSTRAINT valid_subscription_dates EXPECT (
+      start_date <= end_date
+      AND end_date <= current_date()
+      AND start_date >= '2020-01-01'
+    )
+
+    -- Complex boolean logic
+    CONSTRAINT valid_order_state EXPECT (
+      (status = 'ACTIVE' AND balance > 0)
+      OR (status = 'PENDING' AND created_date > current_date() - INTERVAL 7 DAYS)
+    )
+
+    -- 無効なレコードを削除
+    CONSTRAINT valid_current_page EXPECT (current_page_id IS NOT NULL and current_page_title IS NOT NULL) ON VIOLATION DROP ROW
+
+    -- 無効なレコードで失敗
+    CONSTRAINT valid_count EXPECT (count > 0) ON VIOLATION FAIL UPDATE
+
+    -- 行数の検証
+    CREATE OR REFRESH MATERIALIZED VIEW count_verification(
+      CONSTRAINT no_rows_dropped EXPECT (a_count == b_count)
+    ) AS SELECT * FROM
+      (SELECT COUNT(*) AS a_count FROM table_a),
+      (SELECT COUNT(*) AS b_count FROM table_b)
+
+    -- 範囲ベースの検証パターン
+    CREATE OR REFRESH MATERIALIZED VIEW stats_validation_view AS
+      WITH bounds AS (
         SELECT
-          *,
-          NOT ((pickup_zip IS NOT NULL) and (dropoff_zip IS NOT NULL)) as is_quarantined
-        FROM STREAM(raw_trips_data);
+        avg(amount) - 3 * stddev(amount) as lower_bound,
+        avg(amount) + 3 * stddev(amount) as upper_bound
+        FROM historical_stats
+        WHERE date >= CURRENT_DATE() - INTERVAL 30 DAYS
+      )
+      SELECT
+        new_data.*,
+        bounds.*
+      FROM new_data
+      CROSS JOIN bounds;
 
-      CREATE TEMPORARY LIVE VIEW valid_trips_data AS
-      SELECT * FROM trips_data_quarantine WHERE is_quarantined=FALSE;
+    CREATE OR REFRESH MATERIALIZED VIEW validated_amounts (
+      CONSTRAINT within_statistical_range EXPECT (amount BETWEEN lower_bound AND upper_bound)
+    )
+    AS SELECT * FROM stats_validation_view;
 
-      CREATE TEMPORARY LIVE VIEW invalid_trips_data AS
-      SELECT * FROM trips_data_quarantine WHERE is_quarantined=TRUE;
-      ```
-  - 無効なレコードに対するアクション
-    | 操作 | SQL 構文 | Python 構文 | 結果 |
-    |------|---------|------------|------|
-    | warn (デフォルト) | EXPECT | dlt.expect | 無効なレコードはターゲットに書き込まれ、有効なレコードと無効なレコードの数は、他のデータセットメトリクスとともに記録される |
-    | drop | EXPECT ... ON VIOLATION DROP ROW | dlt.expect_or_drop | 無効なレコードは削除され、ドロップされたレコードの数は、他のデータセットメトリクスとともに記録される |
-    | fail | EXPECT ... ON VIOLATION FAIL UPDATE | dlt.expect_or_fail | 無効なレコードがある場合、そのフローが失敗し、下流の処理は中断され、途中までの処理はロールバックされる。再処理するためには手動トリガーが必要。失敗したフローと関連のないパイプライン内の他フローに対する影響はない。メトリクスは記録されない。 |
+    -- 無効なレコードを隔離
+    CREATE TEMPORARY STREAMING LIVE VIEW raw_trips_data AS
+      SELECT * FROM STREAM(samples.nyctaxi.trips);
 
-- PythonでのDLTの記述
-  - dlt.read() 関数と dlt.read_stream() 関数は使用可能だが、Databricks では常に spark.read.table() 関数と spark.readStream.table() 関数の使用を推奨
-    - spark 関数
-      - 外部ストレージ内のデータセットや他のパイプラインで定義されたデータセットなど、内部データセットと外部データセットの両方の読み取りをサポート
-      - 読み取り操作に対するオプション (skipChangeCommitsなど) の指定をサポート
-    - dlt 関数
-      - 内部データセットの読み取りのみをサポート
-      - オプションの指定は非対応
+    CREATE OR REFRESH TEMPORARY STREAMING TABLE trips_data_quarantine(
+      -- Option 1 - merge all expectations to have a single name in the pipeline event log
+      CONSTRAINT quarantined_row EXPECT (pickup_zip IS NOT NULL OR dropoff_zip IS NOT NULL),
+      -- Option 2 - Keep the expectations separate, resulting in multiple entries under different names
+      CONSTRAINT invalid_pickup_zip EXPECT (pickup_zip IS NOT NULL),
+      CONSTRAINT invalid_dropoff_zip EXPECT (dropoff_zip IS NOT NULL)
+    )
+    PARTITIONED BY (is_quarantined)
+    AS
+      SELECT
+        *,
+        NOT ((pickup_zip IS NOT NULL) and (dropoff_zip IS NOT NULL)) as is_quarantined
+      FROM STREAM(raw_trips_data);
 
-- Auto Loader
-  - ファイルが検出されると、そのメタデータはAuto Loaderパイプラインのチェックポイントの場所にあるスケーラブルなキーバリューストア（RocksDB）に永続化され、データが1回だけ処理されることが保証される
-  - ファイルが追加または上書きされた場合、ファイルのどのバージョンが処理されるかを保証できないため、不変ファイルのみを取り込み、cloudFiles.allowOverwritesの設定を避けることが推奨されている
-  - データファイルが連続して到着するのではなく、定期的にアップロードされる場合、予想されるファイル到着時刻の後に、Trigger.AvailableNow で実行するようにスケジュールする
-  - ファイルシステムの監視方法
-    - ディレクトリ表示モード
-      - 指定されたディレクトリ内に存在する全てのファイルを一度にリストアップして、オートローダーがそれを読み込む
-      - リストアップされた全ファイルを一度に読み込むため、ファイル数が多くなると処理が重くなる可能性がある
-    - ファイル通知モード
-      - システムがファイルの変更（追加、削除、変更など）を監視し、変更があった場合にのみ通知を受けて、オートローダーがそのファイルにアクセス
-      - ファイルが変更されると、即座に通知を受けて反応するため、リアルタイムで更新を反映させやすい
-      - ディレクトリ全体をスキャンする必要がなく、変更があったファイルだけを監視するため、リソースを節約できる
-      - イベント駆動型であるため、システムへの負荷が軽減される
+    CREATE TEMPORARY LIVE VIEW valid_trips_data AS
+    SELECT * FROM trips_data_quarantine WHERE is_quarantined=FALSE;
 
-### PIIデータの削除
+    CREATE TEMPORARY LIVE VIEW invalid_trips_data AS
+    SELECT * FROM trips_data_quarantine WHERE is_quarantined=TRUE;
+    ```
+- 無効なレコードに対するアクション
+  | 操作 | SQL 構文 | Python 構文 | 結果 |
+  |------|---------|------------|------|
+  | warn (デフォルト) | EXPECT | dlt.expect | 無効なレコードはターゲットに書き込まれ、有効なレコードと無効なレコードの数は、他のデータセットメトリクスとともに記録される |
+  | drop | EXPECT ... ON VIOLATION DROP ROW | dlt.expect_or_drop | 無効なレコードは削除され、ドロップされたレコードの数は、他のデータセットメトリクスとともに記録される |
+  | fail | EXPECT ... ON VIOLATION FAIL UPDATE | dlt.expect_or_fail | 無効なレコードがある場合、そのフローが失敗し、下流の処理は中断され、途中までの処理はロールバックされる。再処理するためには手動トリガーが必要。失敗したフローと関連のないパイプライン内の他フローに対する影響はない。メトリクスは記録されない。 |
+
+#### PythonでのDLTの記述
+- dlt.read() 関数と dlt.read_stream() 関数は使用可能だが、Databricks では常に spark.read.table() 関数と spark.readStream.table() 関数の使用を推奨
+  - spark 関数
+    - 外部ストレージ内のデータセットや他のパイプラインで定義されたデータセットなど、内部データセットと外部データセットの両方の読み取りをサポート
+    - 読み取り操作に対するオプション (skipChangeCommitsなど) の指定をサポート
+  - dlt 関数
+    - 内部データセットの読み取りのみをサポート
+    - オプションの指定は非対応
+
+### Auto Loader
+- ファイルが検出されると、そのメタデータはAuto Loaderパイプラインのチェックポイントの場所にあるスケーラブルなキーバリューストア（RocksDB）に永続化され、データが1回だけ処理されることが保証される
+- ファイルが追加または上書きされた場合、ファイルのどのバージョンが処理されるかを保証できないため、不変ファイルのみを取り込み、cloudFiles.allowOverwritesの設定を避けることが推奨されている
+- データファイルが連続して到着するのではなく、定期的にアップロードされる場合、予想されるファイル到着時刻の後に、Trigger.AvailableNow で実行するようにスケジュールする
+- ファイルシステムの監視方法
+  - ディレクトリ表示モード
+    - 指定されたディレクトリ内に存在する全てのファイルを一度にリストアップして、オートローダーがそれを読み込む
+    - リストアップされた全ファイルを一度に読み込むため、ファイル数が多くなると処理が重くなる可能性がある
+  - ファイル通知モード
+    - システムがファイルの変更（追加、削除、変更など）を監視し、変更があった場合にのみ通知を受けて、オートローダーがそのファイルにアクセス
+    - ファイルが変更されると、即座に通知を受けて反応するため、リアルタイムで更新を反映させやすい
+    - ディレクトリ全体をスキャンする必要がなく、変更があったファイルだけを監視するため、リソースを節約できる
+    - イベント駆動型であるため、システムへの負荷が軽減される
+
+### セキュアな情報管理
+#### PIIデータの削除
 - ブロンズレイヤーからPIIデータを削除
   - コード
     ```python
@@ -1316,8 +1563,31 @@ rssFullText = false
     WHEN MATCHED THEN DELETE
     """)
     ```
+#### Dynamic Views
+- 列表示に対する操作
+  ```sql
+  CREATE OR REPLACE VIEW customers_vw AS
+    SELECT
+      customer_id,
+      CASE
+        WHEN is_member('admins_demo') THEN email
+        ELSE 'REDACTED'
+      END AS email,
+      gender
+    FROM customers_silver
+  ```
+- 行表示に対する操作
+  ```sql
+  CREATE OR REPLACE VIEW customers_fr_vw AS
+  SELECT * FROM customers_vw
+  WHERE
+    CASE
+      WHEN is_member('admins_demo') THEN TRUE
+      ELSE country = "France" AND row_time > "2022-01-01"
+    END
+  ```
 
-- ブロンズからシルバー、ゴールドレイヤーへの変更の伝播
+### ブロンズからシルバー、ゴールドレイヤーへの変更の伝播
   - シルバー、ゴールドレイヤーがマテリアライズドビューの場合
     - ソース（ブロンズ）での削除を自動的に処理
     - Databricks によって自動的に最新の状態に保たれ（サーバレス DLT パイプラインを自動的に作成し更新処理を実施、ベーステーブルでチェンジデータフィードを有効にする必要あり（`ALTER TABLE table1 SET TBLPROPERTIES (delta.enableChangeDataFeed = true);`））、冗長な再計算を回避可能
@@ -1349,3 +1619,6 @@ rssFullText = false
     - 動的値参照
     - タスク値
 - タスク間でコンピュートを共有すると、起動時間に関連するレイテンシーを短縮可能
+- dbutils.widget.text(key, value) でジョブのパラメータに指定した値の動的参照が可能
+- ジョブのガバナンスとして、ジョブ所有権をサービスプリンシパルに割り当てることが推奨されている。これにより、所有者の離職に対して頑健かつ、権限をサービスプリンシパルで一元管理できるようになる。ワークスペース管理者はジョブの権限を管理し、必要に応じて所有権を再割り当て可能。
+- ジョブをAPI実行した場合は、[Run Asのデフォルト](https://docs.databricks.com/aws/en/jobs/privileges#control-access-to-a-job)であるオーナーではなく、APIトークンに対応するユーザーがログに記録される
