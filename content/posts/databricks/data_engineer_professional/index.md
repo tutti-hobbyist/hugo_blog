@@ -27,8 +27,8 @@ rssFullText = false
 +++
 
 <!--more-->
-# 試験勉強に使用した教材
-## 公式
+## 試験勉強に使用した教材
+### 公式
 - [Data Engineer Professional Exam Guide](https://www.databricks.com/sites/default/files/2024-05/databricks-certified-data-engineer-professional-exam-guide.pdf)
 - [Platform Architecture](https://www.databricks.com/trust/architecture)
 - [クラシック コンピュート プレーン ネットワーキング](https://docs.databricks.com/aws/ja/security/network/classic)
@@ -56,23 +56,22 @@ rssFullText = false
 - [Spark UI Simulator](https://www.databricks.training/spark-ui-simulator/index.html)
 - [Web UI](https://spark.apache.org/docs/latest/web-ui.html)
 
-## Udemy
+### Udemy
 - [Databricks Certified Data Engineer Professional - Preparation](https://www.udemy.com/course/databricks-certified-data-engineer-professional)
 - [Practice Exams: Databricks Certified Data Engineer Professional](https://www.udemy.com/course/practice-exams-databricks-data-engineer-professional-k)
 
-## その他
+### その他
 - [Databricks Certified Data Engineer Professional Exam](https://www.examtopics.com/exams/databricks/certified-data-engineer-professional/)
 - [How Delta Lake Liquid Clustering conceptually works](https://dennyglee.com/2024/02/06/how-delta-lake-liquid-clustering-conceptually-works/)
 
 
-# 試験結果
+## 試験結果
 -  :  %
 -  :  %
 -  :  %
 -  :  %
 -  :  %
 
-# まとめ
 ## 試験対策
 | 質問 | 回答 | 補足・関連リンク |
 |-----|-----|-----|
