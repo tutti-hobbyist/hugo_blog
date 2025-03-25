@@ -1,8 +1,8 @@
 +++
 title = 'AWS Solution Architect Associate 試験勉強まとめ'
 subtitle = ""
-date = 2025-mm-dd
-lastmod = 2025-mm-dd
+date = 2025-05-30
+lastmod = 2025-05-30
 draft = true
 KaTex = false
 author = "Tuuutti"
