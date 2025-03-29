@@ -66,11 +66,12 @@ rssFullText = false
 
 
 ## 試験結果
--  :  %
--  :  %
--  :  %
--  :  %
--  :  %
+- Tooling : 83 %
+- Data Processing : 72 %
+- Data Modeling : 91 %
+- Security : 83 %
+- Monitoring : 100 %
+- Testing and Deployment : 83 %
 
 ## 試験対策
 | 質問 | 回答 | 補足・関連リンク |
