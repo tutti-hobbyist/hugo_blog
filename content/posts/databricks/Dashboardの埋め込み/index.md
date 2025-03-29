@@ -1,5 +1,5 @@
 +++
-tite = 'Databricks Dashboardの埋め込み表示の備忘録'
+title = 'Databricks Dashboardの埋め込み表示の備忘録'
 subtitle = ""
 date = 2025-03-27
 lastmod = 2025-03-27

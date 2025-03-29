@@ -1,5 +1,5 @@
 +++
-tite = '【読書記録】Sales is 科学的に成果をコントロールする営業術'
+title = '【読書記録】Sales is 科学的に成果をコントロールする営業術'
 subtitle = ""
 date = 2025-03-28
 lastmod = 2025-03-28
